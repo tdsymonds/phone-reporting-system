@@ -1,0 +1,11 @@
+git
+python-virtualenv
+libpq-dev
+python-dev
+python3.5-dev
+postgresql
+postgresql-contrib
+postgresql-server-dev-9.5
+nginx
+supervisor
+build-essential
