@@ -1,4 +1,4 @@
-PHONE REPORTING SYSTEM
+Phone Reporting System
 ======================
 
 This is an experimental project that I'm working on, that replicates a real world scenario. 
@@ -18,7 +18,7 @@ First to create the database for the test phone data:
   CREATE DATABASE [dbname] WITH OWNER [username];
   ALTER USER [username] WITH SUPERUSER;
 
-I've then created a few SQL commands in the "create-commands.sql" file to create the simple schema which need to be executed.
+I've then created a few SQL commands in the `create-commands.sql`_. file to create the simple schema which need to be executed.
 
 The database can then be populated by running the python_db.py script.
 
@@ -48,3 +48,7 @@ A few general notes for now, regarding the calls in the database:
 
   ch_direction = 0    /* inbound */ 
   ch_direction = 1    /* outbound */ 
+
+
+
+.. _create-commands.sql: configuration/db/create-commands.sql
