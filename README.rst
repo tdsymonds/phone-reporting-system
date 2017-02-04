@@ -18,9 +18,9 @@ First to create the database for the test phone data:
   CREATE DATABASE [dbname] WITH OWNER [username];
   ALTER USER [username] WITH SUPERUSER;
 
-I've then created a few SQL commands in the `create-commands.sql`_. file to create the simple schema which need to be executed.
+I've then created a few SQL commands in the `create-commands.sql`_ file to create the simple schema which need to be executed.
 
-The database can then be populated by adapting and running the `populate_db.py`_. script.
+The database can then be populated by adapting and running the `populate_db.py`_ script.
 
 
 ************
