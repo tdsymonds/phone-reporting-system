@@ -20,7 +20,7 @@ First to create the database for the test phone data:
 
 I've then created a few SQL commands in the `create-commands.sql`_. file to create the simple schema which need to be executed.
 
-The database can then be populated by running the python_db.py script.
+The database can then be populated by adapting and running the `populate_db.py`_. script.
 
 
 ************
@@ -52,3 +52,4 @@ A few general notes for now, regarding the calls in the database:
 
 
 .. _create-commands.sql: configuration/db/create-commands.sql
+.. _populate_db.py: configuration/db/populate_db.py
