@@ -24,12 +24,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'website.apps.authentication',
-    'website.apps.phone',
-
+    'axes',
     'polymorphic',
     'sekizai',
     'widget_tweaks',
+
+    'website.apps.authentication',
+    'website.apps.phone',
 ]
 
 MIDDLEWARE = [
@@ -117,3 +118,15 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 LOGIN_URL = '/login/'
+
+
+# AXES
+AXES_USERNAME_FORM_FIELD = "email"
+AXES_LOGIN_FAILURE_LIMIT = 5
+AXES_BEHIND_REVERSE_PROXY = True
+AXES_COOLOFF_TIME = 24
+AXES_LOCKOUT_TEMPLATE = 'errors/axes_lockout.html'
+
+# Make session expire. Set cookie age in seconds
+SESSION_COOKIE_AGE = 60*60*1
+SESSION_SAVE_EVERY_REQUEST = True
