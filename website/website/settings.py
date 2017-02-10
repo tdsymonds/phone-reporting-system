@@ -25,8 +25,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'website.apps.authentication',
+    'website.apps.phone',
 
     'polymorphic',
+    'sekizai',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +57,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'sekizai.context_processors.sekizai',
             ],
         },
     },
@@ -111,3 +115,5 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+
+LOGIN_URL = '/login/'
