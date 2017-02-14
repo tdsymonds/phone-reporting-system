@@ -1,1 +1,34 @@
-<h1>Hello</h1>
+{% extends 'base.html' %}
+{% load sekizai_tags %}
+
+{% block title %}Welcome {{ request.user.first_name }} to your phone reporting dashboard{% endblock %}
+
+{% block content %}
+    <div id="page-content-wrapper">
+        <section class="header-bar">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-10">
+                        <a href="#menu-toggle" class="btn btn-default toggle-menu" id="menu-toggle"><i class="fa fa-bars"></i>  </a>
+                        <h1 class="welcome-msg">Welcome {{ request.user.first_name }}</h1>
+                    </div>
+                    <div class="col-xs-2">
+                        <a class="btn btn-default logout" href="{% url 'logout' %}"><i class="fa fa-sign-out"></i>Logout</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    
+
+    {% addtoblock "js" %}
+        <script>
+        $("#menu-toggle").click(function(e) {
+            e.preventDefault();
+            $(".content-wrapper").toggleClass("toggled");
+        });
+        </script>
+    {% endaddtoblock %} 
+
+{% endblock %}

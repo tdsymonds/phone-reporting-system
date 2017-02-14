@@ -1,0 +1,55 @@
+{% load sekizai_tags staticfiles thumbnail %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        <title>{% block title %}{% endblock %}</title>
+
+        <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Oswald:300,400,700|Raleway:300,400,600,700" rel="stylesheet">
+        
+        {% render_block "css" %}
+    </head>
+    <body>
+
+        <div class="content-wrapper">
+            <div id="sidebar-wrapper">
+                <ul class="sidebar-nav">
+                    <li class="sidebar-brand">
+                        <div class="sidebar-brand-container">
+                            {% thumbnail request.user.image "100x100" crop="center" as im %}
+                                <img class="circle" src="{{ im.url }}">
+                            {% endthumbnail %}
+                            <h3>{{ request.user.get_full_name }}</h3>
+                            <span class="title">{{ request.user.company_position }}</span>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-home"></i>Home</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-home"></i>Departments</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-users"></i>Users</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-cog"></i>Settings</a>
+                    </li>
+                </ul>
+            </div>
+            {% block content %}{% endblock %}
+        </div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+        {% render_block "js" %}        
+    </body>
+</html>

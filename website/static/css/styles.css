@@ -1,0 +1,156 @@
+html, body{
+    padding: 0;
+    margin: 0;
+    font-family: 'Raleway', sans-serif;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5{
+/*     font-family: 'Oswald',sans-serif; */
+}
+
+
+
+/* PAGE CONTENT */
+.content-wrapper {
+    padding-left: 250px;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+.content-wrapper.toggled {
+    padding-left: 0;
+}
+
+#sidebar-wrapper {
+    z-index: 1000;
+    position: fixed;
+    left: 250px;
+    width: 250px;
+    height: 100%;
+    margin-left: -250px;
+    overflow-y: auto;
+    background: #384d60;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+.content-wrapper.toggled #sidebar-wrapper {
+    width: 0;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    position: relative;
+    background: #eee;
+}
+
+.content-wrapper.toggled #page-content-wrapper {
+    position: relative;
+    margin-right: 0;
+}
+
+
+
+
+
+/* SIDEBAR */
+.sidebar-nav {
+    position: absolute;
+    top: 0;
+    width: 250px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.sidebar-nav li.sidebar-brand{
+    padding: 25px 0 20px;
+    background: #2f4050;
+    line-height:30px;
+    
+}
+
+.sidebar-brand img{
+    height: 60px;
+}
+.sidebar-brand h3{
+    color:#c7d3de;
+    margin: 15px 0 0;
+}
+.sidebar-brand .title{
+    color: #f7a600;
+    display: block;
+    font-style: italic;
+}
+
+.sidebar-nav li {
+    text-indent: 20px;
+    line-height: 50px;
+}
+.sidebar-nav li i{
+    margin-right:10px;
+    text-indent: 0;
+}
+
+.sidebar-nav li a {
+    display: block;
+    text-decoration: none;
+    color: #c7d3de;
+    text-transform: uppercase;
+    
+}
+
+.sidebar-nav li a:hover {
+    text-decoration: none;
+    color: #fff;
+    background: rgba(255,255,255,0.2);
+}
+
+.sidebar-nav li a:active,
+.sidebar-nav li a:focus {
+    text-decoration: none;
+}
+
+
+
+/* GENERAL */
+img.circle{
+    border-radius: 50%;
+}
+
+
+/* HEADER BAR */
+.header-bar{
+    width:100%;
+    border-bottom:dotted 1px #ccc;
+    padding: 20px 0;
+
+}
+
+.header-bar .toggle-menu{
+    float: left;
+    margin-top: 3px;
+    margin-right: 25px;
+    color:#f7a600;
+    background:#fff;
+}
+
+.header-bar h1.welcome-msg{
+    display:inline-block;
+    margin: 0;
+}
+
+.btn.logout{
+    float: right;
+    margin-top: 3px;
+}
+.btn.logout i{
+    margin-right:5px;
+}

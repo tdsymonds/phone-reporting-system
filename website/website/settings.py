@@ -10,6 +10,7 @@ SECRET_KEY = MY_SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = MY_ALLOWED_HOSTS
 
 AUTH_USER_MODEL = 'authentication.CustomUser'
@@ -27,6 +28,7 @@ INSTALLED_APPS = [
     'axes',
     'polymorphic',
     'sekizai',
+    'sorl.thumbnail',
     'widget_tweaks',
 
     'website.apps.authentication',
@@ -127,6 +129,8 @@ AXES_BEHIND_REVERSE_PROXY = True
 AXES_COOLOFF_TIME = 24
 AXES_LOCKOUT_TEMPLATE = 'errors/axes_lockout.html'
 
-# Make session expire. Set cookie age in seconds
+
+# MAKE SESSION EXPIRE
 SESSION_COOKIE_AGE = 60*60*1
 SESSION_SAVE_EVERY_REQUEST = True
+

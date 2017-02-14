@@ -8,3 +8,4 @@ ipython
 numpy>=1.11
 Pillow>=2.3 
 psycopg2>=2.6
+sorl-thumbnail>=12.3
