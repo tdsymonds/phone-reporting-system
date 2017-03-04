@@ -1,6 +1,10 @@
 import os
-from .settings_secret import (PRIMARY_DATABASE_SETTINGS, MY_SECRET_KEY,
-    MY_ALLOWED_HOSTS)
+from .settings_secret import (
+    MY_ALLOWED_HOSTS,
+    MY_SECRET_KEY,
+    PHONE_DATABASE_SETTINGS,
+    PRIMARY_DATABASE_SETTINGS, 
+)
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -134,4 +138,14 @@ AXES_LOCKOUT_TEMPLATE = 'errors/axes_lockout.html'
 # MAKE SESSION EXPIRE
 SESSION_COOKIE_AGE = 60*60*1
 SESSION_SAVE_EVERY_REQUEST = True
+
+
+# PHONE DATABASE
+PHONE_DATABASE = {
+    'NAME': PHONE_DATABASE_SETTINGS['name'],
+    'USER': PHONE_DATABASE_SETTINGS['user'],
+    'PASSWORD': PHONE_DATABASE_SETTINGS['password'],
+    'HOST': PHONE_DATABASE_SETTINGS['host'],
+    'PORT': PHONE_DATABASE_SETTINGS['port'],
+}
 

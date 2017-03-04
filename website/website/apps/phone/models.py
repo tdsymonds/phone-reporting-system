@@ -4,8 +4,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
 from uuslug import uuslug
-from website.apps.authentication.models import CustomUser
 
+from website.apps.authentication.models import CustomUser
 
 from .choices import DIRECTION_CHOICES, INTERNAL_EXTERNAL_CHOICES
 
@@ -17,6 +17,8 @@ class Department(MPTTModel):
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     users = models.ManyToManyField(CustomUser, through='DepartmentUser')
     slug = models.SlugField(_('slug'), max_length=255, blank=True, allow_unicode=True)
+    added_manually = models.BooleanField(_('added manually'), default=False, 
+        help_text=_('Should be marked true if the department is created manually in the admin'))
 
     def __str__(self):
         return self.name
