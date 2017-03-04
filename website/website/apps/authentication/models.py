@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*- 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.http import urlquote
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from uuslug import uuslug
 
 from .managers import CustomUserManager
 
@@ -28,6 +30,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         help_text=_('Designates whether this user should be treated as '
                     'active. Unselect this instead of deleting accounts.'))
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    slug = models.SlugField(_('slug'), max_length=255, blank=True, allow_unicode=True)
+
+    phone_id = models.IntegerField(_('phone id'), blank=True, null=True, unique=True)
+    phone_extension = models.CharField(_('phone extension'), max_length=20, blank=True, null=True, unique=True)
 
     objects = CustomUserManager()
 
@@ -37,6 +43,25 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = uuslug(self.get_full_name(), instance=self, start_no=2)
+        super(CustomUser, self).save(*args, **kwargs)
+
+    def clean(self):
+        """
+        Either all the requirement phone fields should be
+        entered or none of the fields (indicating that they're
+        not a phone user)
+        """
+        phone_fields = [self.phone_id, self.phone_extension]
+        all_none = phone_fields.count(None) == len(phone_fields)
+        all_entered = all(phone_fields)
+
+        if not (all_none or all_entered):
+            raise ValidationError(_('Please either enter all of the phone fields or none of them'))
+
 
     def get_absolute_url(self):
         return "/users/%s/" % urlquote(self.email)
