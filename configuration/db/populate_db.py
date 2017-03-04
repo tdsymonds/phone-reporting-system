@@ -29,24 +29,52 @@ DEPARTMENTS = [
         'size': 0.01
     },
     {
-        'name': 'Accounts',
-        'size': 0.24
-    },
-    {
-        'name': 'Property Management',
-        'size': 0.25
+        'name': 'Directors',
+        'size': 0.01
     },
     {
         'name': 'Lettings',
-        'size': 0.25
+        'size': 0.3
     },
     {
         'name': 'Sales',
-        'size': 0.20
+        'size': 0.23
     },
     {
         'name': 'Business Development',
         'size': 0.05
+    },
+    {
+        'name': 'Team Leo',
+        'size': 0.04
+    },
+    {
+        'name': 'Team Lyra',
+        'size': 0.04
+    },
+    {
+        'name': 'Team Orion',
+        'size': 0.04
+    },
+    {
+        'name': 'Team Pegasus',
+        'size': 0.04
+    },
+    {
+        'name': 'Team Phoenix',
+        'size': 0.04
+    },
+    {
+        'name': 'Team Polaris',
+        'size': 0.04
+    },
+    {
+        'name': 'Team Neptune',
+        'size': 0.08
+    },
+    {
+        'name': 'Team Jupiter',
+        'size': 0.08
     },
 ]
 
@@ -61,7 +89,7 @@ AVERAGE_CALL_LENGTH_MINS = 5
 
 def main():
     # initial_setup()
-    log_calls(date(2017,1,1), date(2017,3,1))
+    log_calls(date(2017,1,1), date(2017,5,1))
 
 def log_calls(date_from, date_to):
     # setup db connection
