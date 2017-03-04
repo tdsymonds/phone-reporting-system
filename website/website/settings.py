@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'axes',
+    'mptt',
     'polymorphic',
     'sekizai',
     'sorl.thumbnail',
