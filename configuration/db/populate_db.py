@@ -89,7 +89,7 @@ AVERAGE_CALL_LENGTH_MINS = 5
 
 def main():
     # initial_setup()
-    log_calls(date(2017,1,1), date(2017,5,1))
+    log_calls(date(2017,3,1), date(2017,5,1))
 
 def log_calls(date_from, date_to):
     # setup db connection
@@ -229,7 +229,9 @@ def _set_user_email(firstname, surname):
     return '%s.%s@%s' % (firstname, surname, DOMAIN)
 
 def _set_user_extension(department_id, index):
-    return (department_id * 100) + index
+    # for now just return the index, need to try to come
+    # up with a better way to generate a unique extension.
+    return index
 
 def get_common_names():
     # Common names obtained from here on 2nd Feb 2017:
