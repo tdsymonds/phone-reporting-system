@@ -12,7 +12,9 @@ from .choices import DIRECTION_CHOICES, INTERNAL_EXTERNAL_CHOICES
 
 @python_2_unicode_compatible
 class Department(MPTTModel):
-    department_id = models.IntegerField(_('department id'), primary_key=True)
+    # mptt admin does not like when pk is 0, so stopping department_id from
+    # being pk
+    department_id = models.IntegerField(_('department id'), unique=True)
     name = models.CharField(_('name'), max_length=50)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
     users = models.ManyToManyField(CustomUser, through='DepartmentUser')
