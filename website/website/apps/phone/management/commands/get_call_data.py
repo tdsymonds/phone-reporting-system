@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*- 
+from datetime import datetime
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -64,28 +65,83 @@ class Command(BaseCommand):
         # note: don't want to remove departments that have been 
         # added manually
         departments_to_delete = Department.objects.filter(
-            added_manually=False).exlcude(department_id__in=department_id_list)
+            added_manually=False).exclude(department_id__in=department_id_list)
 
-
-
-        # need to make sure child nodes aren't deleted when a parent node is!!
-
-              
+        # todo: need to make sure child nodes aren't deleted when a parent node is!!
+        # todo: delete these departments             
 
     def get_users(self):
-        query = """ SELECT user_id, user_firstname, user_surname, user_active, 
-                        user_email, user_extension, user_department_id
-                    FROM tblusers"""
+        user_id_list = []
+
+        # get all the users
+        query = """ SELECT user_id, user_firstname, user_surname, 
+                        user_email, user_extension, user_department_id,
+                        user_active
+                    FROM tblusers """
         
         curs = self.get_curs(query)
 
+        # loop through each of the results
         for row in curs.fetchall():
             r = Reg(curs, row)
-            # print (r.user_firstname, r.user_surname)
+
+            # append the user id to the list
+            user_id_list += [r.user_id]
+
+            # does the user alreay exist?
+            user_exists = existing_user = CustomUser.objects.filter(
+                phone_id=r.user_id).first()
+
+            if user_exists:
+                # update the info
+                existing_user.email = r.user_email
+                existing_user.first_name = r.user_firstname
+                existing_user.last_name = r.user_surname
+                existing_user.is_active = r.user_active
+                existing_user.phone_extension=r.user_extension
+                existing_user.save()
+
+                # has the department changed?
+                new_department = Department.objects.filter(department_id=r.user_department_id).first()
+
+                # only will be one active department user per user, so can get first
+                department_user = DepartmentUser.objects.filter(date_left__isnull=True, user=existing_user).first()
+
+                # do the departments match?
+                if new_department != department_user.department:
+                    # set the current department user as left
+                    department_user.date_left = datetime.now()
+                    # add the new department
+                    department_user = DepartmentUser(department=new_department, user=existing_user)
+                    department_user.save()
+
+            else:
+                # need to add a new user
+                new_user = CustomUser(
+                    email=r.user_email,
+                    first_name=r.user_firstname,
+                    last_name=r.user_surname,
+                    is_active=r.user_active,
+                    phone_id=r.user_id,
+                    phone_extension=r.user_extension,
+                )
+                new_user.save()
+                print ('-Added new user: %s' % (new_user))
+
+                # need to add them to the correct department.
+                department = Department.objects.filter(department_id=r.user_department_id).first()
+                department_user = DepartmentUser(department=department, user=new_user)
+                department_user.save()
+
+                print ('--Added to department: %s' % (department))
+
+        # note to self:
+        # do i need to delete old users because whether they are 
+        # active or not is already being handled by the phone system
 
     def get_call_data(self):
         self.get_departments()
-        # self.get_users()       
+        self.get_users()       
 
     def handle(self, *args, **options):
         self.get_call_data()
