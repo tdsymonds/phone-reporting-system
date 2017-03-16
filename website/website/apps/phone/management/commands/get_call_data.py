@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- 
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -139,9 +139,54 @@ class Command(BaseCommand):
         # do i need to delete old users because whether they are 
         # active or not is already being handled by the phone system
 
+    def get_calls(self):
+        # calls are created after the phone call has complete,
+        # so once logged they do not change, so only need to add
+        # new calls and can skip existing.
+
+        datetime_format = '%Y-%m-%d'
+        today = datetime.now().strftime(datetime_format)
+
+        # due to the large amount of data, need to import calls on a daily basis,
+        # otherwise there is too much data to loop through and consider
+        query = """ SELECT ch_call_id, ch_user_id, ch_calling_number, ch_called_number, 
+                           ch_direction, ch_internal_external, ch_start_time, 
+                           ch_end_time, ch_talk_time_seconds
+                    FROM tblcallhistory
+                    WHERE ch_start_time BETWEEN '%s 00:00' AND '%s 23:59:59' 
+                """ % (today, today)
+
+        curs = self.get_curs(query)
+
+        # loop through each of the calls
+        for row in curs.fetchall():
+            r = Reg(curs, row)
+
+            # does the call exist in my db?
+            call_exists = Call.objects.filter(call_id=r.ch_call_id)
+
+            if not call_exists:
+                # need to add the call
+                # first get the user
+                user = CustomUser.objects.filter(phone_id=r.ch_user_id).first()
+
+                new_call = Call(
+                    call_id=r.ch_call_id,
+                    user=user,
+                    direction=r.ch_direction,
+                    internal_external=r.ch_internal_external,
+                    start_time=r.ch_start_time,
+                    end_time=r.ch_end_time,
+                    talk_time_seconds=r.ch_talk_time_seconds,
+                )
+                new_call.save()
+
+        # calls aren't deleted from the system, so i don't need to handle this
+
     def get_call_data(self):
-        self.get_departments()
-        self.get_users()       
+        # self.get_departments()
+        # self.get_users()       
+        self.get_calls()
 
     def handle(self, *args, **options):
         self.get_call_data()

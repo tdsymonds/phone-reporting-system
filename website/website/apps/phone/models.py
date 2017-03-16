@@ -55,6 +55,7 @@ class DepartmentUser(models.Model):
 
 @python_2_unicode_compatible
 class Call(models.Model):
+    call_id = models.IntegerField(_('call id'), primary_key=True)
     user = models.ForeignKey(CustomUser)
     direction = models.CharField(_('direction'), max_length=1, choices=DIRECTION_CHOICES)
     internal_external = models.CharField(_('internal external'), max_length=1, choices=INTERNAL_EXTERNAL_CHOICES)
