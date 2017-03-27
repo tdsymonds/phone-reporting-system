@@ -184,8 +184,8 @@ class Command(BaseCommand):
         # calls aren't deleted from the system, so i don't need to handle this
 
     def get_call_data(self):
-        # self.get_departments()
-        # self.get_users()       
+        self.get_departments()
+        self.get_users()       
         self.get_calls()
 
     def handle(self, *args, **options):
