@@ -82,6 +82,84 @@ def direction(request):
         {
             'name': 'Outbound',
             'data': outbound_data,
+            'color': '#009b87',
+
+        }
+    ]
+
+    # create results dict
+    results = {
+        'categories': categories,
+        'series': series,
+    }
+
+    #return json
+    return HttpResponse(
+            json.dumps(results),
+            content_type="application/json"
+        )
+
+
+@login_required
+def internal_external(request):
+    DATE_FORMAT = '%d %b'
+
+    # get form and qs parameters
+    form = FilterBarForm(request.GET)
+    direction = request.GET.get('direction', None)
+
+    # if form not valid or not valid qs parameters
+    if not form.is_valid() or direction not in [None,'0','1']:
+        # error with dates so return
+        return HttpResponse(
+            json.dumps({'error': 'form not valid'}),
+            content_type="application/json"
+        )
+    
+    # get dates
+    date_from = form.cleaned_data['date_from']
+    date_to = form.cleaned_data['date_to'] + timedelta(days=1)
+
+    # build query
+    q_objects = Q()
+    q_objects &= Q(start_time__gte=date_from)
+    q_objects &= Q(start_time__lt=date_to)
+
+    if direction:
+        q_objects &= Q(direction=direction)
+
+    # get calls
+    calls = Call.objects.filter(q_objects).annotate(date=TruncDay('start_time')).values('date', 'internal_external').annotate(count=Count('pk')).order_by('date', 'direction')
+
+    # categories are each date
+    categories = []
+    internal_data = []
+    external_data = []
+
+    # loop through results and add relevant data to
+    # the correct lists.
+    for call in calls:
+        str_date = call['date'].strftime(DATE_FORMAT)
+        if str_date not in categories:
+            categories.append(str_date)
+
+        if call['internal_external'] == '0':
+            internal_data.append(call['count'])
+        else:
+            external_data.append(call['count'])
+
+
+    # create series object
+    series = [
+        {
+            'name': 'Internal',
+            'data': internal_data,
+            'color': '#ecaa00'
+
+        }, 
+        {
+            'name': 'External',
+            'data': external_data,
             'color': '#003b4b',
 
         }
@@ -95,6 +173,6 @@ def direction(request):
 
     #return json
     return HttpResponse(
-        json.dumps(results),
-        content_type="application/json"
-    )
+            json.dumps(results),
+            content_type="application/json"
+        )

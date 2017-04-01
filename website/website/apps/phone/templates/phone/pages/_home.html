@@ -51,6 +51,14 @@
                         <div id="total-in-out-chart" class="chart"></div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div id="in-int-ext-chart" class="chart"></div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div id="total-in-int-ext-chart" class="chart"></div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -145,37 +153,49 @@
                 setColumnChart({
                     url: '{% url "phone:direction" %}' + qs + '&internal_external=0',
                     elm: '#int-in-out-chart',
-                    title: 'Internal Inbound/Outbound Calls'
+                    title: 'Internal Calls'
                 })
 
                 setStackedChart({
                     url: '{% url "phone:direction" %}' + qs + '&internal_external=0',
                     elm: '#total-int-in-out-chart',
-                    title: 'Internal Inbound/Outbound Calls'
+                    title: 'Internal Calls'
                 })
 
                 setColumnChart({
                     url: '{% url "phone:direction" %}' + qs + '&internal_external=1',
                     elm: '#ext-in-out-chart',
-                    title: 'External Inbound/Outbound Calls'
+                    title: 'External Calls'
                 })
 
                 setStackedChart({
                     url: '{% url "phone:direction" %}' + qs + '&internal_external=1',
                     elm: '#total-ext-in-out-chart',
-                    title: 'External Inbound/Outbound Calls'
+                    title: 'External Calls'
                 })
 
                 setColumnChart({
                     url: '{% url "phone:direction" %}' + qs,
                     elm: '#in-out-chart',
-                    title: 'All Inbound/Outbound Calls'
+                    title: 'All Calls'
                 })
 
                 setStackedChart({
                     url: '{% url "phone:direction" %}' + qs,
                     elm: '#total-in-out-chart',
-                    title: 'All Inbound/Outbound Calls'
+                    title: 'All Calls'
+                })
+
+                setColumnChart({
+                    url: '{% url "phone:internal_external" %}' + qs + '&direction=0',
+                    elm: '#in-int-ext-chart',
+                    title: 'Inbound Calls'
+                })
+
+                setStackedChart({
+                    url: '{% url "phone:internal_external" %}' + qs + '&direction=0',
+                    elm: '#total-in-int-ext-chart',
+                    title: 'Outbound Calls'
                 })
                 
             }
