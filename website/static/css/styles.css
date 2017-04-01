@@ -6,15 +6,31 @@ html, body{
 
 body {
     overflow-x: hidden;
+    background: #f8f8f8;
 }
 
 h1, h2, h3, h4, h5{
 /*     font-family: 'Oswald',sans-serif; */
 }
 
+.btn-blue{
+    background:#79aec8;
+    color:#fff;
+    border:1px solid transparent;
+
+}
+
+.btn-blue:active,
+.btn-blue:focus, 
+.btn-blue:hover{
+    background: #417690;
+    color: #fff;
+}
 
 
+/****************************/
 /* PAGE CONTENT */
+/****************************/
 .content-wrapper {
     padding-left: 250px;
     -webkit-transition: all 0.5s ease;
@@ -49,7 +65,7 @@ h1, h2, h3, h4, h5{
 #page-content-wrapper {
     width: 100%;
     position: relative;
-    background: #eee;
+    
 }
 
 .content-wrapper.toggled #page-content-wrapper {
@@ -61,7 +77,9 @@ h1, h2, h3, h4, h5{
 
 
 
+/****************************/
 /* SIDEBAR */
+/****************************/
 .sidebar-nav {
     position: absolute;
     top: 0;
@@ -120,26 +138,26 @@ h1, h2, h3, h4, h5{
 
 
 
+/****************************/
 /* GENERAL */
+/****************************/
 img.circle{
     border-radius: 50%;
 }
 
 
+/****************************/
 /* HEADER BAR */
+/****************************/
 .header-bar{
     width:100%;
-    border-bottom:dotted 1px #ccc;
     padding: 20px 0;
-
 }
 
 .header-bar .toggle-menu{
     float: left;
     margin-top: 3px;
     margin-right: 25px;
-    color:#f7a600;
-    background:#fff;
 }
 
 .header-bar h1.welcome-msg{
@@ -153,4 +171,42 @@ img.circle{
 }
 .btn.logout i{
     margin-right:5px;
+}
+
+
+/****************************/
+/* FILTER BAR  */
+/****************************/
+.filter-bar{
+    background:#fff;
+    padding:20px;
+    border-bottom: solid 1px #eee;
+    border-top: solid 1px #eee;
+}
+
+.filter-bar form label{
+    margin-left: 30px;
+    margin-right: 10px;
+}
+.filter-bar form label:first-child{
+    margin-left:0;
+}
+
+
+
+/****************************/
+/* CHARTS */
+/****************************/
+.chart-section{
+    padding: 15px 0;
+}
+
+.chart-section .row{
+    margin-bottom: 15px;
+}
+
+.chart{
+    height:400px;
+    border: 1px solid #eee;
+    background: #fff;
 }

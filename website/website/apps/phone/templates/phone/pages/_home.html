@@ -9,25 +9,193 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-xs-10">
-                        <a href="#menu-toggle" class="btn btn-default toggle-menu" id="menu-toggle"><i class="fa fa-bars"></i>  </a>
+                        <a href="#menu-toggle" class="btn btn-blue toggle-menu" id="menu-toggle"><i class="fa fa-bars"></i>  </a>
                         <h1 class="welcome-msg">Welcome {{ request.user.first_name }}</h1>
                     </div>
                     <div class="col-xs-2">
-                        <a class="btn btn-default logout" href="{% url 'logout' %}"><i class="fa fa-sign-out"></i>Logout</a>
+                        <a class="btn btn-blue logout" href="{% url 'logout' %}"><i class="fa fa-sign-out"></i>Logout</a>
                     </div>
                 </div>
             </div>
         </section>
+
+        <section class="filter-bar">
+            <form id="filter-bar-form">
+                {{ form }}
+            </form>
+        </section>
+
+        <section class="chart-section">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div id="int-in-out-chart" class="chart"></div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div id="total-int-in-out-chart" class="chart"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div id="ext-in-out-chart" class="chart"></div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div id="total-ext-in-out-chart" class="chart"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div id="in-out-chart" class="chart"></div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div id="total-in-out-chart" class="chart"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </div>
 
     
 
     {% addtoblock "js" %}
-        <script>
-        $("#menu-toggle").click(function(e) {
-            e.preventDefault();
-            $(".content-wrapper").toggleClass("toggled");
-        });
+        <script type="text/javascript">
+            function setColumnChart(options){
+                $.getJSON( options.url, function( json ) {
+
+                    var series = json['series'],
+                        categories = json['categories'];
+
+                    var barOptions = {
+                        chart: {
+                            type: 'column'
+                        },
+                        title: {
+                            text: options.title
+                        },
+                        xAxis: {
+                            categories: categories,
+                            crosshair: true
+                        },
+                        yAxis: {
+                            min: 0,
+                            title: {
+                                text: 'Count'
+                            }
+                        },
+                        tooltip: {
+                            headerFormat: '<b>{point.x}</b><br/>',
+                            pointFormat: '{series.name}: {point.y}'
+                        },
+                        series: series
+                    };
+
+                    $(options.elm).highcharts(barOptions);
+                });
+            };
+
+            function setStackedChart(options){
+                $.getJSON( options.url, function( json ) {
+
+                    var series = json['series'],
+                        categories = json['categories'];
+
+                    var barOptions = {
+                        chart: {
+                            type: 'column'
+                        },
+                        title: {
+                            text: options.title
+                        },
+                        xAxis: {
+                            categories: categories,
+                            crosshair: true
+                        },
+                        yAxis: {
+                            min: 0,
+                            title: {
+                                text: 'Count'
+                            },
+                            stackLabels: {
+                                enabled: true,
+                            }
+                        },
+                        tooltip: {
+                            headerFormat: '<b>{point.x}</b><br/>',
+                            pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}'
+                        },
+                        plotOptions: {
+                            column: {
+                                stacking: 'normal'
+                            }
+                        },
+                        series: series
+                    };
+
+                    $(options.elm).highcharts(barOptions);
+                });
+            };
+
+        </script>
+        <script type="text/javascript">
+            function setCharts(){
+                var form = $('#filter-bar-form');
+                var qs = '?' + form.serialize();
+
+                setColumnChart({
+                    url: '{% url "phone:direction" %}' + qs + '&internal_external=0',
+                    elm: '#int-in-out-chart',
+                    title: 'Internal Inbound/Outbound Calls'
+                })
+
+                setStackedChart({
+                    url: '{% url "phone:direction" %}' + qs + '&internal_external=0',
+                    elm: '#total-int-in-out-chart',
+                    title: 'Internal Inbound/Outbound Calls'
+                })
+
+                setColumnChart({
+                    url: '{% url "phone:direction" %}' + qs + '&internal_external=1',
+                    elm: '#ext-in-out-chart',
+                    title: 'External Inbound/Outbound Calls'
+                })
+
+                setStackedChart({
+                    url: '{% url "phone:direction" %}' + qs + '&internal_external=1',
+                    elm: '#total-ext-in-out-chart',
+                    title: 'External Inbound/Outbound Calls'
+                })
+
+                setColumnChart({
+                    url: '{% url "phone:direction" %}' + qs,
+                    elm: '#in-out-chart',
+                    title: 'All Inbound/Outbound Calls'
+                })
+
+                setStackedChart({
+                    url: '{% url "phone:direction" %}' + qs,
+                    elm: '#total-in-out-chart',
+                    title: 'All Inbound/Outbound Calls'
+                })
+                
+            }
+
+            $(function(){
+                $("#menu-toggle").click(function(e) {
+                    e.preventDefault();
+                    $(".content-wrapper").toggleClass("toggled");
+                });
+
+                // set charts initially
+                setCharts();
+
+                // on form update referesh charts
+                $('#filter-bar-form').change(function () {
+                    setCharts();
+                });
+
+            })
+
         </script>
     {% endaddtoblock %} 
 
