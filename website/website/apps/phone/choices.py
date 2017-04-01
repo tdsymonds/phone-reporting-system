@@ -16,7 +16,6 @@ CHART_TYPE_CHOICES = [
 ]
 
 CHART_URL_CHOICES = [
-    ['home', 'home'],
     ['direction', 'direction'],
     ['internal_external', 'internal_external']
 ]
