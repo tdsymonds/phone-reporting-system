@@ -2,7 +2,7 @@
 from django.contrib import admin
 from mptt.admin import DraggableMPTTAdmin
 
-from .models import Call, Department, DepartmentUser
+from .models import Call, Chart, Department, DepartmentUser
 
 
 class DepartmentUserInline(admin.StackedInline):
@@ -21,3 +21,8 @@ class DepartmentAdmin(DraggableMPTTAdmin):
 @admin.register(Call)
 class CallAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Chart)
+class ChartAdmin(admin.ModelAdmin):
+    list_display = ('name', 'title', 'position', 'url',)

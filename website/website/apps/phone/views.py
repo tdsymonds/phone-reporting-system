@@ -10,7 +10,7 @@ from django.views.generic import TemplateView
 import json
 
 from .forms import FilterBarForm
-from .models import Call
+from .models import Call, Chart
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -19,6 +19,7 @@ class HomeView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
         context['form'] = FilterBarForm()
+        context['charts'] = Chart.objects.all()
         return context
 
 

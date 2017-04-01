@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*- 
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.functional import lazy
 from django.utils.translation import ugettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
 from uuslug import uuslug
 
 from website.apps.authentication.models import CustomUser
 
-from .choices import DIRECTION_CHOICES, INTERNAL_EXTERNAL_CHOICES
+from .choices import (CHART_TYPE_CHOICES, CHART_URL_CHOICES, 
+    DIRECTION_CHOICES, INTERNAL_EXTERNAL_CHOICES)
 
 
 @python_2_unicode_compatible
@@ -70,3 +73,24 @@ class Call(models.Model):
         ordering = ['start_time', 'user',]
         verbose_name = _('Call')
         verbose_name_plural = _('Calls')
+
+
+@python_2_unicode_compatible
+class Chart(models.Model):
+    name = models.CharField(_('name'), max_length=100, help_text=_('For admin reference purposes'))
+    title = models.CharField(_('title'), max_length=100) 
+    url = models.CharField(_('url'), max_length=100, choices=CHART_URL_CHOICES)
+    query_string = models.CharField(_('query string'), max_length=200, blank=True, null=True)
+    chart_type = models.CharField(_('chart type'), max_length=50, choices=CHART_TYPE_CHOICES)
+    position = models.SmallIntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['position',]
+        verbose_name = _('Chart')
+        verbose_name_plural = _('Charts')
+
+    def get_url(self):
+        return reverse('phone:%s' % self.url)
