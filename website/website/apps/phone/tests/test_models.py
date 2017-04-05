@@ -6,16 +6,17 @@ from ..models import Department
 
 class DepartmentTestCase(TestCase):
     def setUp(self):
+        # create sample data
         for i in range(10):
             Department.objects.create(department_id=i, name=str(i))
 
     def test_department_hierarchy(self):
-        # get two departments        
+        # get three departments        
         d0 = Department.objects.get(department_id='0')
         d1 = Department.objects.get(department_id='1')
         d2 = Department.objects.get(department_id='2')
 
-        # create heirachy d0 -> d1 -> d2
+        # create hierarchy d0 -> d1 -> d2
         d1.parent = d0
         d1.save()
         d2.parent = d1
