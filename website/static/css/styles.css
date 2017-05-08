@@ -137,14 +137,17 @@ h1, h2, h3, h4, h5{
 }
 
 .sub-nav{
-    display:none; 
-    list-style: none;    
-    background:#52677A;
+    display:none;
+    list-style: none;
+    background: #f7a600;
     padding-left:0;
 }
 
 .sub-nav li{
-    text-indent: 60px;
+    text-indent: 40px;
+}
+.sub-nav li a{
+    color:#fff
 }
 
 

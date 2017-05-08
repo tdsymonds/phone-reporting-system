@@ -82,3 +82,19 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email])
+
+    def get_departments(self):
+        """
+        Returns a list of departments accessible to this user.
+        """
+        department_list = []
+        for department_user in self.departmentuser_set.all():
+            # if the user can view full department, append the department
+            if department_user.view_full_department:
+                department_list.append(department_user.department)
+
+            # if the user can view child departments, merge these with the list
+            if department_user.view_child_departments:
+                department_list += list(department_user.department.get_descendants())
+
+        return sorted(department_list, key=lambda x:x.name)

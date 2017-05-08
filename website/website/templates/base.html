@@ -34,15 +34,18 @@
                     <li>
                         <a href="#"><i class="fa fa-home"></i>Home</a>
                     </li>
-                    <li>
-                        <a href="#" class="has-sub-nav"><i class="fa fa-home"></i>Departments</a>
-                        <ul class="sub-nav">
-                            <li><a href="#">Accounts</a></li>
-                            <li><a href="#">Lettings</a></li>
-                            <li><a href="#">Property Management</a></li>
-                            <li><a href="#">Sales</a></li>
-                        </ul>
-                    </li>
+                    {% with request.user.get_departments as departments %}
+                        {% if departments %}
+                            <li>
+                                <a href="#" class="has-sub-nav"><i class="fa fa-home"></i>Departments</a>
+                                <ul class="sub-nav">
+                                    {% for department in departments %}
+                                        <li><a href="#">{{ department.name }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endif %}
+                    {% endwith %}
                     <li>
                         <a href="#"><i class="fa fa-users"></i>Users</a>
                     </li>
