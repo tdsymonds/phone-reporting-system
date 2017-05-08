@@ -35,7 +35,13 @@
                         <a href="#"><i class="fa fa-home"></i>Home</a>
                     </li>
                     <li>
-                        <a href="#"><i class="fa fa-home"></i>Departments</a>
+                        <a href="#" class="has-sub-nav"><i class="fa fa-home"></i>Departments</a>
+                        <ul class="sub-nav">
+                            <li><a href="#">Accounts</a></li>
+                            <li><a href="#">Lettings</a></li>
+                            <li><a href="#">Property Management</a></li>
+                            <li><a href="#">Sales</a></li>
+                        </ul>
                     </li>
                     <li>
                         <a href="#"><i class="fa fa-users"></i>Users</a>
@@ -55,6 +61,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.9/modules/exporting.js"></script>
 
         <script src="{% static 'js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/custom.js' %}"></script>
 
         {% render_block "js" %}        
     </body>
