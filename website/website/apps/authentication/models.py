@@ -98,3 +98,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                 department_list += list(department_user.department.get_descendants())
 
         return sorted(department_list, key=lambda x:x.name)
+
+    def get_users(self):
+        """
+        Returns a list of users accessible to this user.
+        """
+        user_list = []
+        departments = self.get_departments()
+        for department in departments:
+            user_list += list(department.get_users())
+
+        # remove duplicates
+        user_list = list(set(user_list))            
+        return sorted(user_list, key=lambda x: (x.first_name, x.last_name))

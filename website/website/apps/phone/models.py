@@ -38,6 +38,9 @@ class Department(MPTTModel):
             self.slug = uuslug(self.name, instance=self, start_no=2)
         super(Department, self).save(*args, **kwargs)
 
+    def get_users(self):
+        return self.users.all()
+
 
 @python_2_unicode_compatible
 class DepartmentUser(models.Model):

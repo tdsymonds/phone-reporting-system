@@ -46,9 +46,18 @@
                             </li>
                         {% endif %}
                     {% endwith %}
-                    <li>
-                        <a href="#"><i class="fa fa-users"></i>Users</a>
-                    </li>
+                    {% with request.user.get_users as users %}
+                        {% if users %}
+                            <li>
+                                <a href="#" class="has-sub-nav"><i class="fa fa-home"></i>Users</a>
+                                <ul class="sub-nav">
+                                    {% for user in users %}
+                                        <li><a href="#">{{ user.get_full_name }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endif %}
+                    {% endwith %}
                     <li>
                         <a href="#"><i class="fa fa-cog"></i>Settings</a>
                     </li>
