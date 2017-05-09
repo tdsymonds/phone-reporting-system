@@ -136,6 +136,11 @@ h1, h2, h3, h4, h5{
     text-decoration: none;
 }
 
+.has-sub-nav.selected{
+    color: #fff;
+    background: rgba(255,255,255,0.2);
+}
+
 .sub-nav{
     display:none;
     list-style: none;
@@ -145,6 +150,7 @@ h1, h2, h3, h4, h5{
 
 .sub-nav li{
     text-indent: 40px;
+    line-height: 30px;
 }
 .sub-nav li a{
     color:#fff
