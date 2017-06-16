@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*- 
-from datetime import datetime, timedelta
+from django.conf import settings
 from django import forms
-from django.forms.extras.widgets import SelectDateWidget
+
+from .fields import DateRangeField
 
 
 class FilterBarForm(forms.Form):
-    date_from = forms.DateField(widget=SelectDateWidget(years=range(2016, datetime.now().year+1)), initial=(datetime.now()-timedelta(days=7)))
-    date_to = forms.DateField(widget=SelectDateWidget(years=range(2016, datetime.now().year+1)), initial=datetime.now())
+    date_range = DateRangeField(required=False, input_formats=settings.DATE_INPUT_FORMATS,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Date range', 
+            'class': 'form-control datepicker'
+        }))

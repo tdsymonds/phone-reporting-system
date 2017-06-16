@@ -11,8 +11,8 @@ INTERNAL_EXTERNAL_CHOICES = [
 ]
 
 CHART_TYPE_CHOICES = [
-    ['setColumnChart', 'Column'],
-    ['setStackedChart', 'Stacked'],
+    ['columnChart', 'Column'],
+    ['stackedChart', 'Stacked'],
 ]
 
 CHART_URL_CHOICES = [

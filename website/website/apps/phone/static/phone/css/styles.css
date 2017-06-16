@@ -9,10 +9,6 @@ body {
     background: #f8f8f8;
 }
 
-h1, h2, h3, h4, h5{
-/*     font-family: 'Oswald',sans-serif; */
-}
-
 .btn-blue{
     background:#79aec8;
     color:#fff;
@@ -40,7 +36,7 @@ h1, h2, h3, h4, h5{
 }
 
 .content-wrapper.toggled {
-    padding-left: 0;
+    padding-left: 70px;
 }
 
 #sidebar-wrapper {
@@ -59,7 +55,7 @@ h1, h2, h3, h4, h5{
 }
 
 .content-wrapper.toggled #sidebar-wrapper {
-    width: 0;
+    width: 70px;
 }
 
 #page-content-wrapper {
@@ -75,45 +71,58 @@ h1, h2, h3, h4, h5{
 
 
 
+/*****************/
+/*   SIDEBAR     */
+/*****************/
+#sidebar-wrapper{
+    position:fixed;
+    width:250px;
+    height:100%;
+}
 
+.sidebar{
+    background:#384d60;
+    height: 100%;
+}
 
-/****************************/
-/* SIDEBAR */
-/****************************/
-.sidebar-nav {
-    position: absolute;
-    top: 0;
-    width: 250px;
+.sidebar .branding{
+    background:#2f4050;
+    padding: 15px 25px 15px;
+}
+
+.sidebar .branding img.circle{
+    max-width: 80px;
+    width: 100%;
+    border-radius:50%;
+}
+
+.sidebar .branding h3{
+    color:#c7d3de;
+    margin-top: 15px;
+    margin-bottom: 7px;
+}
+
+.sidebar .branding .title {
+    font-style: italic;
+    color: #ff7700;
+    font-size: 15px;
+}
+.sidebar-nav ul {
     margin: 0;
     padding: 0;
     list-style: none;
 }
-.sidebar-nav li.sidebar-brand{
-    padding: 25px 0 20px;
-    background: #2f4050;
-    line-height:30px;
-    
-}
-
-.sidebar-brand img{
-    height: 60px;
-}
-.sidebar-brand h3{
-    color:#c7d3de;
-    margin: 15px 0 0;
-}
-.sidebar-brand .title{
-    color: #f7a600;
-    display: block;
-    font-style: italic;
-}
-
 .sidebar-nav li {
     text-indent: 20px;
     line-height: 50px;
 }
+.sidebar-nav li.active{
+    background:#293846;
+    border-left:solid 4px #ff7700;
+}
+
 .sidebar-nav li i{
-    margin-right:10px;
+    margin-right:20px;
     text-indent: 0;
 }
 
@@ -136,34 +145,25 @@ h1, h2, h3, h4, h5{
     text-decoration: none;
 }
 
-.has-sub-nav.selected{
-    color: #fff;
-    background: rgba(255,255,255,0.2);
-}
-
-.sub-nav{
+/* ----------------- */
+/* minimised sidebar */
+/* ----------------- */
+.content-wrapper.toggled .sidebar h3,
+.content-wrapper.toggled .sidebar .title,
+.content-wrapper.toggled .sidebar-nav li a span {
     display:none;
-    list-style: none;
-    background: #f7a600;
-    padding-left:0;
 }
 
-.sub-nav li{
-    text-indent: 40px;
-    line-height: 30px;
-}
-.sub-nav li a{
-    color:#fff
+.content-wrapper.toggled .sidebar .branding{
+    padding: 10px;
 }
 
-
-
-/****************************/
-/* GENERAL */
-/****************************/
-img.circle{
-    border-radius: 50%;
+.content-wrapper.toggled .sidebar-nav li a{
+    text-align:center;
+    font-size:20px;
+    line-height:60px;
 }
+
 
 
 /****************************/
@@ -212,6 +212,19 @@ img.circle{
     margin-left:0;
 }
 
+.filter-bar .datepicker{
+    height: 42px;
+    border: 1px solid #D7D7D7;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.filter-bar i.fa-calendar{
+    position:absolute;
+    top: 13px;
+    right: 27px;
+}
+
 
 
 /****************************/
@@ -229,4 +242,15 @@ img.circle{
     height:400px;
     border: 1px solid #eee;
     background: #fff;
+}
+
+.chart.loader::before{
+    content: '';
+    display: block;
+    position:absolute;
+    top:0;
+    right:0;
+    left:0;
+    bottom:0;
+    background: url('../img/hourglass.svg') no-repeat center;    
 }

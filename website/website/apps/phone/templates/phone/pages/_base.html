@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load sekizai_tags staticfiles thumbnail %}
+
+{% block pagecontent %}
+    <div id="sidebar-wrapper">
+        <aside class="sidebar">
+            <section class="branding">
+                {% thumbnail request.user.image "100x100" crop="center" as im %}
+                    <img class="circle" src="{{ im.url }}">
+                {% endthumbnail %}
+                <h3>{{ request.user.get_full_name }}</h3>
+                <span class="title">{{ request.user.company_position }}</span>     
+            </section>
+            <section>
+                <nav class="sidebar-nav">
+                    <ul>
+                        {% url 'phone:my_calls' as url %}
+                        <li {% if request.get_full_path == url %}class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-phone"></i><span>My Calls</span></a></li>
+                        <li><a href="#"><i class="fa fa-cog"></i><span>Settings</span></a></li>
+                    </ul>
+                </nav>
+            </section>
+        </aside>
+    </div>
+
+    {% block content %}{% endblock %}
+
+
+    {% addtoblock "css" %}
+        <link rel="stylesheet" type="text/css" href="{% static 'phone/css/styles.css' %}">
+
+    {% endaddtoblock %}
+
+    {% addtoblock "js" %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.9/highcharts.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.9/highcharts-more.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.9/modules/exporting.js"></script>
+
+        <script src="{% static 'phone/js/custom.js' %}"></script>
+    {% endaddtoblock %}
+
+{% endblock %}

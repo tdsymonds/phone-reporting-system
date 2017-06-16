@@ -1,0 +1,15 @@
+{% load sekizai_tags %}
+
+<div class="datepicker-container">
+    {{ form.date_range }}
+    <i class="fa fa-calendar"></i>
+</div>
+
+{% addtoblock "css" %}
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />    
+{% endaddtoblock %}
+
+{% addtoblock "js" %}
+    <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+{% endaddtoblock %}

@@ -1,179 +1,183 @@
 # -*- coding: utf-8 -*- 
 from datetime import datetime, timedelta
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.urlresolvers import resolve
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDay
 from django.http import HttpResponse
 from django.views.generic import TemplateView
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 import json
 
 from .forms import FilterBarForm
 from .models import Call, Chart
+from .utils import datetimeRange
 
 
-class HomeView(LoginRequiredMixin, TemplateView):
-    template_name = 'phone/pages/_home.html'
+class MyCallView(LoginRequiredMixin, TemplateView):
+    template_name = 'phone/pages/_my_calls.html'
 
     def get_context_data(self, **kwargs):
-        context = super(HomeView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['form'] = FilterBarForm()
         context['charts'] = Chart.objects.all()
         return context
 
 
-@login_required
-def direction(request):
-    DATE_FORMAT = '%d %b'
+class BaseAPIView(LoginRequiredMixin, APIView):
+    date_format = '%d %b'
+    direction = None
+    internal_external = None
+    form = None
 
-    # get form and qs parameters
-    form = FilterBarForm(request.GET)
-    internal_external = request.GET.get('internal_external', None)
+    def dispatch(self, request, *args, **kwargs):
+        self.form = self._get_form()
+        self._set_extra_query_params()
+        return super().dispatch(request, *args, **kwargs)
 
-    # if form not valid or not valid qs parameters
-    if not form.is_valid() or internal_external not in [None,'0','1']:
-        # error with dates so return
-        return HttpResponse(
-            json.dumps({'error': 'form not valid'}),
-            content_type="application/json"
-        )
-    
-    # get dates
-    date_from = form.cleaned_data['date_from']
-    date_to = form.cleaned_data['date_to'] + timedelta(days=1)
+    def _get_form(self):
+        url_name = resolve(self.request.path_info).url_name
 
-    # build query
-    q_objects = Q()
-    q_objects &= Q(start_time__gte=date_from)
-    q_objects &= Q(start_time__lt=date_to)
+        if url_name == 'my_calls':
+            return FilterBarForm(self.request.GET)
 
-    if internal_external:
-        q_objects &= Q(internal_external=internal_external)
+        # todo: return a different form for different views
+        # for now just return the same form
+        return FilterBarForm(self.request.GET)
 
-    # get calls
-    calls = Call.objects.filter(q_objects).annotate(date=TruncDay('start_time')).values('date', 'direction').annotate(count=Count('pk')).order_by('date', 'direction')
+    def _set_extra_query_params(self):
+        internal_external = self.request.GET.get('internal_external', None)
+        direction = self.request.GET.get('direction', None)
 
-    # categories are each date
-    categories = []
-    inbound_data = []
-    outbound_data = []
+        valid_list = [None,'0','1']
 
-    # loop through results and add relevant data to
-    # the correct lists.
-    for call in calls:
-        str_date = call['date'].strftime(DATE_FORMAT)
-        if str_date not in categories:
-            categories.append(str_date)
+        if internal_external not in valid_list or direction not in valid_list:
+            self._return_error('form is not valid')
+        
+        self.internal_external = internal_external
+        self.direction = direction
 
-        if call['direction'] == '0':
-            inbound_data.append(call['count'])
-        else:
-            outbound_data.append(call['count'])
+    def _validate_form(self):
+        if not self.form.is_valid():
+            self._return_error('form is not valid')
 
+    def _return_error(self, msg):
+        return Response({
+            'error': msg
+        })
 
-    # create series object
-    series = [
-        {
-            'name': 'Inbound',
-            'data': inbound_data,
-            'color': '#b01658'
+    def _get_call_counts(self, call_info):
+        date_from, date_to = self.form.cleaned_data['date_range']
 
-        }, 
-        {
-            'name': 'Outbound',
-            'data': outbound_data,
-            'color': '#009b87',
+        q_objects = Q()
 
-        }
-    ]
+        if date_from:
+            q_objects &= Q(start_time__gte=date_from)
 
-    # create results dict
-    results = {
-        'categories': categories,
-        'series': series,
-    }
+        if date_to:
+            q_objects &= Q(start_time__lt=date_to + timedelta(days=1))
 
-    #return json
-    return HttpResponse(
-            json.dumps(results),
-            content_type="application/json"
-        )
+        if self.internal_external:
+            q_objects &= Q(internal_external=self.internal_external)
 
+        if self.direction:
+            q_objects &= Q(direction=self.direction)
 
-@login_required
-def internal_external(request):
-    DATE_FORMAT = '%d %b'
+        return Call.objects.filter(q_objects).annotate(
+                date=TruncDay('start_time')
+            ).values('date', call_info).annotate(
+                count=Count('pk')
+            ).order_by('date', call_info)
+        
+    def _get_categorised_calls(self, call_info):
+        self._validate_form()
 
-    # get form and qs parameters
-    form = FilterBarForm(request.GET)
-    direction = request.GET.get('direction', None)
+        # get calls
+        calls = self._get_call_counts(call_info)
 
-    # if form not valid or not valid qs parameters
-    if not form.is_valid() or direction not in [None,'0','1']:
-        # error with dates so return
-        return HttpResponse(
-            json.dumps({'error': 'form not valid'}),
-            content_type="application/json"
-        )
-    
-    # get dates
-    date_from = form.cleaned_data['date_from']
-    date_to = form.cleaned_data['date_to'] + timedelta(days=1)
+        # categories are each date
+        categories = []
+        data_0 = []
+        data_1 = []
 
-    # build query
-    q_objects = Q()
-    q_objects &= Q(start_time__gte=date_from)
-    q_objects &= Q(start_time__lt=date_to)
+        data_0_results = {}
+        data_1_results = {}
+        dict_date_format = '%d %b %y'
 
-    if direction:
-        q_objects &= Q(direction=direction)
+        # loop through data to get into format for date loop
+        # todo: surely there's a more efficient way to
+        # to this and avoid the unnecessary double loop.
+        for call in calls:
+            call_date = datetime.strftime(call['date'], dict_date_format)
+            
+            if call[call_info] == '0':
+                data_0_results[call_date] = data_0_results.get(call_date, 0) + call['count']
+            else:
+                data_1_results[call_date] = data_1_results.get(call_date, 0) + call['count']
 
-    # get calls
-    calls = Call.objects.filter(q_objects).annotate(date=TruncDay('start_time')).values('date', 'internal_external').annotate(count=Count('pk')).order_by('date', 'direction')
+        # loop through each date between the date form to date
+        # to, so dates with no records will still show as zero
+        date_from, date_to = self.form.cleaned_data['date_range']
+        for day in datetimeRange(date_from, date_to):
+            day_str = datetime.strftime(day, dict_date_format)
+            categories.append(day_str)
+            data_0.append(data_0_results.get(day_str, 0))
+            data_1.append(data_1_results.get(day_str, 0))
 
-    # categories are each date
-    categories = []
-    internal_data = []
-    external_data = []
-
-    # loop through results and add relevant data to
-    # the correct lists.
-    for call in calls:
-        str_date = call['date'].strftime(DATE_FORMAT)
-        if str_date not in categories:
-            categories.append(str_date)
-
-        if call['internal_external'] == '0':
-            internal_data.append(call['count'])
-        else:
-            external_data.append(call['count'])
+        return categories, data_0, data_1
 
 
-    # create series object
-    series = [
-        {
-            'name': 'Internal',
-            'data': internal_data,
-            'color': '#ecaa00'
+class DirectionView(BaseAPIView):
+    def get(self, request, format=None):
+        # get categorised calls
+        categories, inbound_data, outbound_data = self._get_categorised_calls('direction')
 
-        }, 
-        {
-            'name': 'External',
-            'data': external_data,
-            'color': '#003b4b',
+        # create series object
+        series = [
+            {
+                'name': 'Inbound',
+                'data': inbound_data,
+                'color': '#b01658'
 
-        }
-    ]
+            }, 
+            {
+                'name': 'Outbound',
+                'data': outbound_data,
+                'color': '#009b87',
 
-    # create results dict
-    results = {
-        'categories': categories,
-        'series': series,
-    }
+            }
+        ]
 
-    #return json
-    return HttpResponse(
-            json.dumps(results),
-            content_type="application/json"
-        )
+        return Response({
+            'categories': categories,
+            'series': series,
+        })
+
+
+class InternalExternalView(BaseAPIView):
+    def get(self, request, format=None):
+        # get categorised calls
+        categories, internal_data, external_data = self._get_categorised_calls('internal_external')
+
+        # create series object
+        series = [
+            {
+                'name': 'Internal',
+                'data': internal_data,
+                'color': '#ecaa00'
+
+            }, 
+            {
+                'name': 'External',
+                'data': external_data,
+                'color': '#003b4b',
+
+            }
+        ]
+
+        return Response({
+            'categories': categories,
+            'series': series,
+        })

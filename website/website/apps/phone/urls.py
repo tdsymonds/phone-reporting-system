@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*- 
 from django.conf.urls import url
 
-from .views import HomeView, direction, internal_external
+from .views import DirectionView, InternalExternalView, MyCallView
 
 
 urlpatterns = [
-    url(r'^$', HomeView.as_view(), name='home'),
+    url(r'^$', MyCallView.as_view(), name='my_calls'),
 
-    url(r'^direction/$', direction, name='direction'),
-    url(r'^internal_external/$', internal_external, name='internal_external'),
+    url(r'^api/direction/$', DirectionView.as_view(), name='direction'),
+    url(r'^api/internal_external/$', InternalExternalView.as_view(), name='internal_external'),
 ]

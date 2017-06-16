@@ -5,6 +5,7 @@ django-polymorphic>=1.0
 django-sekizai>=0.10.0
 django-uuslug>=1.1.8
 django-widget-tweaks>=1.4.0
+djangorestframework>=3.6,<4.0
 gunicorn>=19.6.0
 ipython
 numpy>=1.11
