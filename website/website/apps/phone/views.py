@@ -57,7 +57,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
 
         # todo: return a different form for different views
         # for now just return the same form
-        return FilterBarForm(self.request.GET)
+        return FullFilterBarForm(self.request.GET)
 
     def _set_extra_query_params(self):
         internal_external = self.request.GET.get('internal_external', None)
@@ -100,9 +100,18 @@ class BaseAPIView(LoginRequiredMixin, APIView):
         if self.only_me:
             q_objects &= Q(user=self.request.user)
 
-        u = self.request.user
-        m = self.only_me
+        if type(self.form) == FullFilterBarForm:
+            q_user_filter_objects = Q()
+            q_department_filter_objects = Q()
 
+            for flter in self.form.cleaned_data['filters']:
+                if flter[0] == 'u':
+                    q_user_filter_objects |= Q(user__pk=flter[1:])
+                elif flter[0] == 'd':
+                    q_user_filter_objects |= Q(user__department__pk=flter[1:])
+
+            q_objects &= q_user_filter_objects
+            q_objects &= q_department_filter_objects
 
         return Call.objects.filter(q_objects).annotate(
                 date=TruncDay('start_time')
