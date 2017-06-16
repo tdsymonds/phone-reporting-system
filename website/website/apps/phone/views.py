@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*- 
 from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.urlresolvers import resolve
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDay
 from django.http import HttpResponse
@@ -11,7 +10,7 @@ from rest_framework.views import APIView
 
 import json
 
-from .forms import FilterBarForm
+from .forms import FilterBarForm, FullFilterBarForm
 from .models import Call, Chart
 from .utils import datetimeRange
 
@@ -22,6 +21,18 @@ class MyCallView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = FilterBarForm()
+        context['only_me'] = True
+        context['charts'] = Chart.objects.all()
+        return context
+
+
+class AllCallView(LoginRequiredMixin, TemplateView):
+    template_name = 'phone/pages/_all_calls.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = FullFilterBarForm()
+        context['only_me'] = False
         context['charts'] = Chart.objects.all()
         return context
 
@@ -31,6 +42,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
     direction = None
     internal_external = None
     form = None
+    only_me = False
 
     def dispatch(self, request, *args, **kwargs):
         self.form = self._get_form()
@@ -38,9 +50,9 @@ class BaseAPIView(LoginRequiredMixin, APIView):
         return super().dispatch(request, *args, **kwargs)
 
     def _get_form(self):
-        url_name = resolve(self.request.path_info).url_name
-
-        if url_name == 'my_calls':
+        only_me = self.request.GET.get('only_me', False)
+        if only_me == 'True':
+            self.only_me = True
             return FilterBarForm(self.request.GET)
 
         # todo: return a different form for different views
@@ -84,6 +96,13 @@ class BaseAPIView(LoginRequiredMixin, APIView):
 
         if self.direction:
             q_objects &= Q(direction=self.direction)
+
+        if self.only_me:
+            q_objects &= Q(user=self.request.user)
+
+        u = self.request.user
+        m = self.only_me
+
 
         return Call.objects.filter(q_objects).annotate(
                 date=TruncDay('start_time')

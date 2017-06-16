@@ -1,0 +1,45 @@
+{% load sekizai_tags staticfiles %}
+
+
+<section class="chart-section">
+    <div class="container-fluid">
+        <div class="row">
+            {% for chart in charts %}
+                <div class="col-xs-12 col-md-6">
+                    <div id="chart-{{ chart.pk }}" class="chart"></div>
+                </div>
+                {% if forloop.counter|divisibleby:"2" and not forloop.last %}
+                    </div><div class="row">
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+{% addtoblock "js" %}
+    <script src="{% static 'phone/js/mycharts.js' %}"></script>
+    <script type="text/javascript">
+        function setCharts(){
+            var form = $('#filter-bar-form');
+            var qs = '?' + form.serialize();
+
+            {% for chart in charts %}
+                $('#chart-{{ chart.pk}}').mycharts('{{ chart.chart_type }}', {
+                    title: '{{ chart.title }}',
+                    url: '{{ chart.get_url }}' + qs + '{{ chart.query_string|default_if_none:"" }}&only_me={{ only_me }}'
+                });
+            {% endfor %}                
+        }
+
+        $(function(){
+            $('#filter-bar-form').change(function () {
+                // the datepicker is changing the form 
+                // on load, so no need to call initially
+                setCharts();
+            });
+
+        })
+
+    </script>
+{% endaddtoblock %} 

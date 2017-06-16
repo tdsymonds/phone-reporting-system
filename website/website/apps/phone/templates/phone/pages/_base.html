@@ -15,7 +15,9 @@
                 <nav class="sidebar-nav">
                     <ul>
                         {% url 'phone:my_calls' as url %}
-                        <li {% if request.get_full_path == url %}class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-phone"></i><span>My Calls</span></a></li>
+                        <li {% if request.get_full_path == url %}class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-user"></i><span>My Calls</span></a></li>
+                        {% url 'phone:all_calls' as url %}
+                        <li {% if request.get_full_path == url %}class="active"{% endif %}><a href="{{ url }}"><i class="fa fa-users"></i><span>All Calls</span></a></li>                        
                         <li><a href="#"><i class="fa fa-cog"></i><span>Settings</span></a></li>
                     </ul>
                 </nav>
@@ -25,16 +27,17 @@
 
     {% block content %}{% endblock %}
 
-
     {% addtoblock "css" %}
+        <link rel="stylesheet" type="text/css" href="{% static 'phone/css/fastselect.css' %}">
         <link rel="stylesheet" type="text/css" href="{% static 'phone/css/styles.css' %}">
-
     {% endaddtoblock %}
 
     {% addtoblock "js" %}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.9/highcharts.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.9/highcharts-more.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.9/modules/exporting.js"></script>
+
+        <script src="{% static 'phone/js/fastselect.standalone.min.js' %}"></script>
 
         <script src="{% static 'phone/js/custom.js' %}"></script>
     {% endaddtoblock %}

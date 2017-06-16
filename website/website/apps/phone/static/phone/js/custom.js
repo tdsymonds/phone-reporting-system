@@ -6,6 +6,7 @@
         onReady: function() {
             this.toggleMenu();
             this.datePicker();
+            this.fastSelect();
         },
 
         toggleMenu: function(){
@@ -32,6 +33,15 @@
                     },
                     "startDate": moment().subtract(14, 'days'),
                     "endDate": moment()
+                });
+            }
+        },
+
+        fastSelect: function(){
+            if ($('.multipleSelect').length){
+                $('.multipleSelect').fastselect({
+                    placeholder: 'Add filters',
+                    searchPlaceholder: 'Search filters'
                 });
             }
         }

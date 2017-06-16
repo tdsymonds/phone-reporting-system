@@ -25,6 +25,9 @@
                     <div class="col-xs-12 col-md-4">
                         {% include 'phone/reusable/_datepicker.html' %}
                     </div>
+                    <div class="col-xs-12 col-md-8">
+                        {{ form.filters|add_class:"multipleSelect" }}
+                    </div>
                 </div>
             </form>
         </section>
