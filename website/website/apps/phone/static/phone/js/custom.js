@@ -30,7 +30,7 @@
                         "format": "DD/MM/YYYY",
                         "separator": " - ",
                     },
-                    "startDate": moment().subtract(28, 'days'),
+                    "startDate": moment().subtract(14, 'days'),
                     "endDate": moment()
                 });
             }
