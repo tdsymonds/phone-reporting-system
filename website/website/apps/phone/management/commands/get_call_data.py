@@ -183,10 +183,35 @@ class Command(BaseCommand):
 
         # calls aren't deleted from the system, so i don't need to handle this
 
+    def quality_check(self):
+        datetime_format = '%Y-%m-%d'
+        today = datetime.now().strftime(datetime_format)
+        two_weeks_ago = (datetime.now() - timedelta(weeks=2)).strftime(datetime_format)
+
+        query = """ SELECT date_trunc('day', ch_start_time), COUNT(*)
+                    FROM tblcallhistory
+                    WHERE ch_start_time BETWEEN '%s 00:00' AND '%s 23:59:59' 
+                    GROUP BY 1
+                    ORDER BY 1
+                """ % (two_weeks_ago, today)
+
+        curs = self.get_curs(query)
+
+
+        for row in curs.fetchall():
+            # get the application call count for the day
+            count = Call.objects.filter(start_time__gte=row[0], start_time__lt=(row[0] + timedelta(days=1))).count()
+
+            # does the application call count match the phone db call count
+            if row[1] != count:
+                # no match, so there's an error!
+                print ('- ERROR on %s: %s does not equal %s' % (row[0], count, row[1]))
+
     def get_call_data(self):
         self.get_departments()
         self.get_users()       
         self.get_calls()
+        self.quality_check()
 
     def handle(self, *args, **options):
         self.get_call_data()
