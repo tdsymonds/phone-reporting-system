@@ -46,7 +46,7 @@
                                     {% if next %}
                                         <input type="hidden" name="next" value="{{ next }}" />
                                     {% else %}
-                                        <input type="hidden" name="next" value="{% url 'phone:home' %}" />
+                                        <input type="hidden" name="next" value="{% url 'phone:my_calls' %}" />
                                     {% endif %}
                                     <input class="btn signin" type="submit" value="Sign in" />
                                 </div>
