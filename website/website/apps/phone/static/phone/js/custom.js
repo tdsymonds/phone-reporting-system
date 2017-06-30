@@ -5,14 +5,47 @@
          */
         onReady: function() {
             this.toggleMenu();
+            this.navToggled();
+            this.scrollToTop();
             this.datePicker();
             this.fastSelect();
         },
 
         toggleMenu: function(){
-            $("#menu-toggle").click(function(e) {
+            $('#menu-toggle').on('click', function(e){
                 e.preventDefault();
                 $(".content-wrapper").toggleClass("toggled");
+            });
+
+            // need to resize charts when css transition completes
+            $('#sidebar-wrapper').on('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend', function(){
+                $('.chart').each(function() { 
+                    if ($(this).highcharts()){
+                        $(this).highcharts().reflow(); 
+                    }
+                });
+            });
+        },
+
+        navToggled: function(){
+            var ww = document.body.clientWidth;
+            if (ww < 1000){
+                $('.content-wrapper').addClass('toggled');
+            };
+        },
+
+        scrollToTop: function () {
+            $(window).scroll(function() {
+                if ($(this).scrollTop() >= 50) {        // If page is scrolled more than 50px
+                    $('#return-to-top').fadeIn(200);    // Fade in the arrow
+                } else {
+                    $('#return-to-top').fadeOut(200);   // Else fade out the arrow
+                }
+            });
+            $('#return-to-top').click(function() {      // When arrow is clicked
+                $('body,html').animate({
+                    scrollTop : 0                       // Scroll to top of body
+                }, 500);
             });
         },
 
