@@ -13,9 +13,12 @@ INTERNAL_EXTERNAL_CHOICES = [
 CHART_TYPE_CHOICES = [
     ['columnChart', 'Column'],
     ['stackedChart', 'Stacked'],
+    ['donut', 'Donut'],
+
 ]
 
 CHART_URL_CHOICES = [
     ['direction', 'direction'],
-    ['internal_external', 'internal_external']
+    ['internal_external', 'internal_external'],
+    ['donut', 'donut'],
 ]

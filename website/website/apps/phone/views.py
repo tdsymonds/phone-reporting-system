@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
 from django.http import HttpResponse
 from django.views.generic import TemplateView
@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 import json
 
+from .choices import DIRECTION_CHOICES, INTERNAL_EXTERNAL_CHOICES
 from .forms import FilterBarForm, FullFilterBarForm
 from .models import Call, Chart
 from .utils import datetimeRange
@@ -80,7 +81,29 @@ class BaseAPIView(LoginRequiredMixin, APIView):
             'error': msg
         })
 
-    def _get_call_counts(self, call_info):
+    def _get_colour(self, call_info, value):
+        if call_info == 'direction' and value == 0:
+            return '#b01658'
+        elif call_info == 'direction' and value == 1:
+            return '#009b87'
+        elif call_info == 'internal_external' and value == 0:
+            return '#ecaa00'
+        else:
+            return '#003b4b'
+
+    def _get_names(self, call_info, value):
+        if call_info == 'direction':
+            choices = DIRECTION_CHOICES
+        else:
+            choices = INTERNAL_EXTERNAL_CHOICES
+
+        for choice in choices:
+            if choice[0] == value:
+                return choice[1]
+
+        return None
+
+    def _get_calls(self):
         date_from, date_to = self.form.cleaned_data['date_range']
 
         q_objects = Q()
@@ -115,7 +138,13 @@ class BaseAPIView(LoginRequiredMixin, APIView):
 
         return Call.objects.filter(q_objects).annotate(
                 date=TruncDay('start_time')
-            ).values('date', call_info).annotate(
+            ).order_by('date')
+
+    def _get_call_counts(self, call_info):
+        calls = self._get_calls()
+        return calls.values(
+                'date', call_info
+            ).annotate(
                 count=Count('pk')
             ).order_by('date', call_info)
         
@@ -156,6 +185,20 @@ class BaseAPIView(LoginRequiredMixin, APIView):
 
         return categories, data_0, data_1
 
+    def _get_donut_calls(self, call_info):
+        self._validate_form()
+        calls = self._get_calls()
+        results = []
+
+        for result in calls.values(call_info).annotate(count=Count('pk')).order_by(call_info):
+            results.append({
+                'name': self._get_names(call_info, int(result[call_info])),
+                'y': result['count'],
+                'color': self._get_colour(call_info, int(result[call_info])),
+            })
+
+        return results
+
 
 class DirectionView(BaseAPIView):
     def get(self, request, format=None):
@@ -167,14 +210,13 @@ class DirectionView(BaseAPIView):
             {
                 'name': 'Inbound',
                 'data': inbound_data,
-                'color': '#b01658'
+                'color': self._get_colour('direction', 0),
 
             }, 
             {
                 'name': 'Outbound',
                 'data': outbound_data,
-                'color': '#009b87',
-
+                'color': self._get_colour('direction', 1),
             }
         ]
 
@@ -194,13 +236,13 @@ class InternalExternalView(BaseAPIView):
             {
                 'name': 'Internal',
                 'data': internal_data,
-                'color': '#ecaa00'
+                'color': self._get_colour('internal_external', 0),
 
             }, 
             {
                 'name': 'External',
                 'data': external_data,
-                'color': '#003b4b',
+                'color': self._get_colour('internal_external', 1),
 
             }
         ]
@@ -209,3 +251,9 @@ class InternalExternalView(BaseAPIView):
             'categories': categories,
             'series': series,
         })
+
+
+class DonutView(BaseAPIView):
+    def get(self, request, format=None):
+        results = self._get_donut_calls(request.GET.get('type'))
+        return Response(results)
