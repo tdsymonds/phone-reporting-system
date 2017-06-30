@@ -179,15 +179,12 @@ class DailyCountView(BaseAPIView):
 
         # categories are each date
         categories = []
-        inb_int = []
-        inb_ext = []
-        out_int = []
-        out_ext = []
 
-        inb_int_results = {}
-        inb_ext_results = {}
-        out_int_results = {}
-        out_ext_results = {}
+        # define two by two matrix for internal/external/inbound/outbound
+        # these are defined nicely by the 0/1 values which means can index
+        # matrix appropriately.
+        data_lists = [[[],[]] for x in range(2)]
+        data_results = [[{},{}] for x in range(2)]
 
         dict_date_format = '%d %b %y'
 
@@ -196,15 +193,10 @@ class DailyCountView(BaseAPIView):
         # to this and avoid the unnecessary double loop.
         for call in calls:
             call_date = datetime.strftime(call['date'], dict_date_format)
-            
-            if call['direction'] == '0' and call['internal_external'] == '0':
-                inb_int_results[call_date] = inb_int_results.get(call_date, 0) + call['count']
-            elif call['direction'] == '0' and call['internal_external'] == '1':
-                inb_ext_results[call_date] = inb_ext_results.get(call_date, 0) + call['count']
-            elif call['direction'] == '1' and call['internal_external'] == '0':
-                out_int_results[call_date] = out_int_results.get(call_date, 0) + call['count']
-            else:
-                out_ext_results[call_date] = out_ext_results.get(call_date, 0) + call['count']
+
+            direction = int(call['direction'])
+            internal_external = int(call['internal_external'])
+            data_results[direction][internal_external][call_date] = data_results[direction][internal_external].get(call_date, 0) + call['count']
 
         # loop through each date between the date form to date
         # to, so dates with no records will still show as zero
@@ -212,38 +204,23 @@ class DailyCountView(BaseAPIView):
         for day in datetimeRange(date_from, date_to):
             day_str = datetime.strftime(day, dict_date_format)
             categories.append(day_str)
-            inb_int.append(inb_int_results.get(day_str, 0))
-            inb_ext.append(inb_ext_results.get(day_str, 0))
-            out_int.append(out_int_results.get(day_str, 0))
-            out_ext.append(out_ext_results.get(day_str, 0))
 
-        # create series object
-        series = [
-            {
-                'name': self._get_names(0, 0),
-                'data': inb_int,
-                'color': self._get_colour(0, 0),
+            # loop through each of the data types
+            for i in range(2):
+                for j in range(2):
+                    data_lists[i][j].append(data_results[i][j].get(day_str, 0))
 
-            }, 
-            {
-                'name': self._get_names(0, 1),
-                'data': inb_ext,
-                'color': self._get_colour(0, 1),
 
-            },
-            {
-                'name': self._get_names(1, 0),
-                'data': out_int,
-                'color': self._get_colour(1, 0),
-
-            },
-            {
-                'name': self._get_names(1, 1),
-                'data': out_ext,
-                'color': self._get_colour(1, 1),
-
-            },
-        ]
+        # loop through each of the data types in the matrix 
+        # and append to the series
+        series = []
+        for i in range(2):
+            for j in range(2):
+                series.append({
+                    'name': self._get_names(i,j),
+                    'data': data_lists[i][j],
+                    'color': self._get_colour(i,j),
+                })
 
         return Response({
             'categories': categories,
