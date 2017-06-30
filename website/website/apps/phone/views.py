@@ -12,7 +12,7 @@ import json
 
 from .choices import DIRECTION_CHOICES, INTERNAL_EXTERNAL_CHOICES
 from .forms import FilterBarForm, FullFilterBarForm
-from .models import Call, Chart
+from .models import Call, Chart, Page
 from .utils import datetimeRange
 
 
@@ -23,7 +23,7 @@ class MyCallView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['form'] = FilterBarForm()
         context['only_me'] = True
-        context['charts'] = Chart.objects.all()
+        context['page'] = Page.objects.filter(name__icontains='my calls').first()
         return context
 
 
@@ -34,7 +34,7 @@ class AllCallView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['form'] = FullFilterBarForm()
         context['only_me'] = False
-        context['charts'] = Chart.objects.all()
+        context['page'] = Page.objects.filter(name__icontains='all calls').first()
         return context
 
 

@@ -22,3 +22,9 @@ CHART_URL_CHOICES = [
     ['internal_external', 'internal_external'],
     ['donut', 'donut'],
 ]
+
+NUMBER_OF_CHART_CHOICES = [
+    ['1', '1'],
+    ['2', '2'],
+    ['4', '4'],
+]
