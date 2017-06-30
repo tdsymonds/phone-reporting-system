@@ -81,27 +81,30 @@ class BaseAPIView(LoginRequiredMixin, APIView):
             'error': msg
         })
 
-    def _get_colour(self, call_info, value):
-        if call_info == 'direction' and value == 0:
+    def _get_colour(self, direction, internal_external):
+        if int(direction) == 0 and int(internal_external) == 0:
             return '#b01658'
-        elif call_info == 'direction' and value == 1:
+        elif int(direction) == 0 and int(internal_external) == 1:
             return '#009b87'
-        elif call_info == 'internal_external' and value == 0:
+        elif int(direction) == 1 and int(internal_external) == 0:
             return '#ecaa00'
         else:
             return '#003b4b'
 
-    def _get_names(self, call_info, value):
-        if call_info == 'direction':
-            choices = DIRECTION_CHOICES
-        else:
-            choices = INTERNAL_EXTERNAL_CHOICES
+    def _get_names(self, direction, internal_external):
+        name = ''
 
-        for choice in choices:
-            if choice[0] == value:
-                return choice[1]
+        for choice in DIRECTION_CHOICES:
+            if choice[0] == int(direction):
+                name += choice[1]
+                break
 
-        return None
+        for choice in INTERNAL_EXTERNAL_CHOICES:
+            if choice[0] == int(internal_external):
+                name += '/%s' % choice[1]
+                break
+
+        return name
 
     def _get_calls(self):
         date_from, date_to = self.form.cleaned_data['date_range']
@@ -140,27 +143,52 @@ class BaseAPIView(LoginRequiredMixin, APIView):
                 date=TruncDay('start_time')
             ).order_by('date')
 
-    def _get_call_counts(self, call_info):
+    def _get_daily_call_counts(self):
         calls = self._get_calls()
         return calls.values(
-                'date', call_info
+                'date', 'direction', 'internal_external'
             ).annotate(
                 count=Count('pk')
-            ).order_by('date', call_info)
+            ).order_by('date', 'direction', 'internal_external')
+
+    def _get_donut_calls(self):
+        self._validate_form()
         
-    def _get_categorised_calls(self, call_info):
+        calls = self._get_calls()
+        calls = calls.values('internal_external', 'direction').annotate(
+            count=Count('pk')).order_by('internal_external', 'direction')
+
+        results = []
+
+        for result in calls:
+            results.append({
+                'name': self._get_names(result['direction'], result['internal_external']),
+                'y': result['count'],
+                'color': self._get_colour(result['direction'], result['internal_external']),
+            })
+
+        return results
+
+
+class DailyCountView(BaseAPIView):
+    def get(self, request, format=None):
         self._validate_form()
 
         # get calls
-        calls = self._get_call_counts(call_info)
+        calls = self._get_daily_call_counts()
 
         # categories are each date
         categories = []
-        data_0 = []
-        data_1 = []
+        inb_int = []
+        inb_ext = []
+        out_int = []
+        out_ext = []
 
-        data_0_results = {}
-        data_1_results = {}
+        inb_int_results = {}
+        inb_ext_results = {}
+        out_int_results = {}
+        out_ext_results = {}
+
         dict_date_format = '%d %b %y'
 
         # loop through data to get into format for date loop
@@ -169,10 +197,14 @@ class BaseAPIView(LoginRequiredMixin, APIView):
         for call in calls:
             call_date = datetime.strftime(call['date'], dict_date_format)
             
-            if call[call_info] == '0':
-                data_0_results[call_date] = data_0_results.get(call_date, 0) + call['count']
+            if call['direction'] == '0' and call['internal_external'] == '0':
+                inb_int_results[call_date] = inb_int_results.get(call_date, 0) + call['count']
+            elif call['direction'] == '0' and call['internal_external'] == '1':
+                inb_ext_results[call_date] = inb_ext_results.get(call_date, 0) + call['count']
+            elif call['direction'] == '1' and call['internal_external'] == '0':
+                out_int_results[call_date] = out_int_results.get(call_date, 0) + call['count']
             else:
-                data_1_results[call_date] = data_1_results.get(call_date, 0) + call['count']
+                out_ext_results[call_date] = out_ext_results.get(call_date, 0) + call['count']
 
         # loop through each date between the date form to date
         # to, so dates with no records will still show as zero
@@ -180,71 +212,37 @@ class BaseAPIView(LoginRequiredMixin, APIView):
         for day in datetimeRange(date_from, date_to):
             day_str = datetime.strftime(day, dict_date_format)
             categories.append(day_str)
-            data_0.append(data_0_results.get(day_str, 0))
-            data_1.append(data_1_results.get(day_str, 0))
-
-        return categories, data_0, data_1
-
-    def _get_donut_calls(self, call_info):
-        self._validate_form()
-        calls = self._get_calls()
-        results = []
-
-        for result in calls.values(call_info).annotate(count=Count('pk')).order_by(call_info):
-            results.append({
-                'name': self._get_names(call_info, int(result[call_info])),
-                'y': result['count'],
-                'color': self._get_colour(call_info, int(result[call_info])),
-            })
-
-        return results
-
-
-class DirectionView(BaseAPIView):
-    def get(self, request, format=None):
-        # get categorised calls
-        categories, inbound_data, outbound_data = self._get_categorised_calls('direction')
+            inb_int.append(inb_int_results.get(day_str, 0))
+            inb_ext.append(inb_ext_results.get(day_str, 0))
+            out_int.append(out_int_results.get(day_str, 0))
+            out_ext.append(out_ext_results.get(day_str, 0))
 
         # create series object
         series = [
             {
-                'name': 'Inbound',
-                'data': inbound_data,
-                'color': self._get_colour('direction', 0),
+                'name': self._get_names(0, 0),
+                'data': inb_int,
+                'color': self._get_colour(0, 0),
 
             }, 
             {
-                'name': 'Outbound',
-                'data': outbound_data,
-                'color': self._get_colour('direction', 1),
-            }
-        ]
+                'name': self._get_names(0, 1),
+                'data': inb_ext,
+                'color': self._get_colour(0, 1),
 
-        return Response({
-            'categories': categories,
-            'series': series,
-        })
-
-
-class InternalExternalView(BaseAPIView):
-    def get(self, request, format=None):
-        # get categorised calls
-        categories, internal_data, external_data = self._get_categorised_calls('internal_external')
-
-        # create series object
-        series = [
+            },
             {
-                'name': 'Internal',
-                'data': internal_data,
-                'color': self._get_colour('internal_external', 0),
+                'name': self._get_names(1, 0),
+                'data': out_int,
+                'color': self._get_colour(1, 0),
 
-            }, 
+            },
             {
-                'name': 'External',
-                'data': external_data,
-                'color': self._get_colour('internal_external', 1),
+                'name': self._get_names(1, 1),
+                'data': out_ext,
+                'color': self._get_colour(1, 1),
 
-            }
+            },
         ]
 
         return Response({
@@ -255,5 +253,26 @@ class InternalExternalView(BaseAPIView):
 
 class DonutView(BaseAPIView):
     def get(self, request, format=None):
-        results = self._get_donut_calls(request.GET.get('type'))
+        results = self._get_donut_calls()
         return Response(results)
+
+
+class CountView(BaseAPIView):
+    def get(self, request, format=None):
+        self._validate_form()
+
+        queryset = self._get_calls()
+
+        direction = request.GET.get('direction')
+        internal_external = request.GET.get('internal_external')
+
+        if direction:
+            queryset = queryset.filter(direction=direction)
+
+        if internal_external:
+            queryset = queryset.filter(internal_external=internal_external)    
+
+        return Response({
+            'count': queryset.count(),
+            'colour': self._get_colour(direction, internal_external),
+        })

@@ -7,7 +7,14 @@
             <div class="row">
                 {% for chart in row.chart_set.all %}
                     <div class="{{ row.get_bootstrap_col_classes }}">
-                        <div id="chart-{{ chart.pk }}" class="chart"></div>
+                        {% if chart.chart_type == 'count' %}
+                            <div class="stat-container">
+                                <h3 id="chart-{{ chart.pk }}" class="stat">0</h3>
+                                <p class="chart-text">{{ chart.title }}</p>
+                            </div>
+                        {% else %}
+                            <div id="chart-{{ chart.pk }}" class="chart"></div>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>
@@ -29,7 +36,6 @@
                         title: '{{ chart.title }}',
                         url: '{{ chart.get_url }}' + qs + '{{ chart.query_string|default_if_none:"" }}&only_me={{ only_me }}'
                     });
-                    
                 {% endfor %}
             {% endfor %}
         }

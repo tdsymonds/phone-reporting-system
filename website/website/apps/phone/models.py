@@ -97,7 +97,7 @@ class Row(models.Model):
         return '%s: %s' %  (self.page, self.name)
 
     class Meta:
-        ordering = ['position',]
+        ordering = ['page', 'position',]
 
     def get_bootstrap_col_classes(self):
         if self.number_of_charts == '1':

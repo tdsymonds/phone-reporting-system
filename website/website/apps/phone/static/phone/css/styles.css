@@ -292,10 +292,25 @@ body {
     margin-bottom: 15px;
 }
 
-.chart{
-    height:400px;
+.chart,
+.stat-container{
     border: 1px solid #eee;
     background: #fff;
+}
+
+.chart{
+    height:400px;
+}
+
+.stat-container{
+    text-align:center;
+    padding:15px;
+}
+
+.stat-container h3{
+    margin-top:0;
+    font-weight:bold;
+    font-size:2.8em;
 }
 
 .chart.loader::before{

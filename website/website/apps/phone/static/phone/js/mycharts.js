@@ -138,6 +138,36 @@
             })
         },
 
+        count: function(options){
+            var selector = this.selector;
+
+            $.getJSON( options.url, function( data ) {
+                
+                var $this = $(selector);
+                var countTo = data['count'];
+
+                $this.html(0);
+                $this.css({'color': data['colour']});
+
+                $({ countNum: $this.text()}).animate(
+                    {
+                        countNum: countTo
+                    },
+                    {
+                        duration: 1000,
+                        easing:'linear',
+                        step: function() {
+                            $this.text(Math.floor(this.countNum));
+                        },
+                        complete: function() {
+                            $this.text(this.countNum);
+                        
+                        }
+                    }
+                );
+            })
+        },
+
         destroy: function(){
             // have to loop as otherwise only destroys one
             $(this.selector).each(function(i, obj) {
