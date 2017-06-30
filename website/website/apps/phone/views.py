@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q, Sum
+from django.db.models import Avg, Count, Q
 from django.db.models.functions import TruncDay
 from django.http import HttpResponse
 from django.views.generic import TemplateView
@@ -148,8 +148,16 @@ class BaseAPIView(LoginRequiredMixin, APIView):
         return calls.values(
                 'date', 'direction', 'internal_external'
             ).annotate(
-                count=Count('pk')
+                value=Count('pk')
             ).order_by('date', 'direction', 'internal_external')
+
+    def _get_daily_call_time(self):
+        calls = self._get_calls()
+        return calls.values(
+                'date', 'direction', 'internal_external'
+            ).annotate(
+                value=Avg('talk_time_seconds')
+            ).order_by('date', 'direction', 'internal_external')        
 
     def _get_donut_calls(self):
         self._validate_form()
@@ -169,14 +177,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
 
         return results
 
-
-class DailyCountView(BaseAPIView):
-    def get(self, request, format=None):
-        self._validate_form()
-
-        # get calls
-        calls = self._get_daily_call_counts()
-
+    def _get_daily_series(self, queryset, query_type=None):
         # categories are each date
         categories = []
 
@@ -191,12 +192,17 @@ class DailyCountView(BaseAPIView):
         # loop through data to get into format for date loop
         # todo: surely there's a more efficient way to
         # to this and avoid the unnecessary double loop.
-        for call in calls:
+        for call in queryset:
             call_date = datetime.strftime(call['date'], dict_date_format)
-
             direction = int(call['direction'])
             internal_external = int(call['internal_external'])
-            data_results[direction][internal_external][call_date] = data_results[direction][internal_external].get(call_date, 0) + call['count']
+
+            # if its an average call change to the minutes and round appropriately
+            value = call['value']
+            if query_type == 'seconds':
+                value = round(value / 60, 1)
+
+            data_results[direction][internal_external][call_date] = value
 
         # loop through each date between the date form to date
         # to, so dates with no records will still show as zero
@@ -210,7 +216,6 @@ class DailyCountView(BaseAPIView):
                 for j in range(2):
                     data_lists[i][j].append(data_results[i][j].get(day_str, 0))
 
-
         # loop through each of the data types in the matrix 
         # and append to the series
         series = []
@@ -221,6 +226,29 @@ class DailyCountView(BaseAPIView):
                     'data': data_lists[i][j],
                     'color': self._get_colour(i,j),
                 })
+
+        return categories, series
+
+
+class DailyCountView(BaseAPIView):
+    def get(self, request, format=None):
+        self._validate_form()
+
+        calls = self._get_daily_call_counts()
+        categories, series = self._get_daily_series(calls)
+
+        return Response({
+            'categories': categories,
+            'series': series,
+        })
+
+
+class DailyCallTimeView(BaseAPIView):
+    def get(self, request, format=None):
+        self._validate_form()
+
+        calls = self._get_daily_call_time()
+        categories, series = self._get_daily_series(queryset=calls, query_type='seconds')
 
         return Response({
             'categories': categories,

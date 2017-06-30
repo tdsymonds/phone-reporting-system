@@ -14,12 +14,14 @@ CHART_TYPE_CHOICES = [
     ['columnChart', 'Column'],
     ['count', 'Count'],
     ['donut', 'Donut'],
+    ['line', 'Line'],
     ['stackedChart', 'Stacked'],
 
 ]
 
 CHART_URL_CHOICES = [
     ['count', 'count'],
+    ['daily_call_time', 'daily_call_time'],
     ['daily_count', 'daily_count'],
     ['donut', 'donut'],
 ]

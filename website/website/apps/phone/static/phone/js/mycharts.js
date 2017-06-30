@@ -91,6 +91,32 @@
 
         },
 
+        line: function(options){
+            var selector = this.selector;
+
+            $.getJSON( options.url, function( json ) {
+
+                var series = json['series'],
+                    categories = json['categories'];
+
+                var lineOptions = {
+                    title: {
+                        text: options.title
+                    },
+                    xAxis: {
+                        categories: categories,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0
+                    },                
+                    series: series
+                };
+            
+                $(selector).highcharts(lineOptions).removeClass('loader');
+            });
+        },
+
         donut: function(options){
             var selector = this.selector;
 
