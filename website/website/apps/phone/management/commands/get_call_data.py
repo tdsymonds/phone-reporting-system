@@ -107,13 +107,16 @@ class Command(BaseCommand):
                 # only will be one active department user per user, so can get first
                 department_user = DepartmentUser.objects.filter(date_left__isnull=True, user=existing_user).first()
 
+                if r.user_id == 155:
+                    print(r.user_id, new_department, department_user.department)
+
                 # do the departments match?
                 if new_department != department_user.department:
                     # set the current department user as left
                     department_user.date_left = datetime.now()
-                    # add the new department
-                    department_user = DepartmentUser(department=new_department, user=existing_user)
                     department_user.save()
+                    # add the new department
+                    department_user = DepartmentUser.objects.create(department=new_department, user=existing_user)
 
             else:
                 # need to add a new user
