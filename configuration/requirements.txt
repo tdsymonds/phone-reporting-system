@@ -11,4 +11,5 @@ ipython
 numpy>=1.11
 Pillow>=2.3 
 psycopg2>=2.6
+radar>=0.3
 sorl-thumbnail>=12.3
