@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
+from datetime import datetime, timedelta 
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
@@ -48,6 +49,7 @@ class DepartmentUser(models.Model):
     department = models.ForeignKey(Department)
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
     date_left = models.DateTimeField(_('date left'), blank=True, null=True)
+    _date_left = models.DateTimeField(_('_date left'))
     view_full_department = models.BooleanField(_('view full department'), default=False)
     view_child_departments = models.BooleanField(_('view child departments'), default=False)
 
@@ -57,6 +59,17 @@ class DepartmentUser(models.Model):
     class Meta:
         verbose_name = _('Department User')
         verbose_name_plural = _('Department Users')
+
+    def save(self, *args, **kwargs):
+        # if they haven't left the department, then set the 
+        # expiry really far ahead in the future. This is 
+        # required for filtering correctly, as the null datetime
+        # needs to be treated as being in the future
+        if self.date_left:
+            self._date_left = self.date_left
+        else:
+            self._date_left = datetime.now() + timedelta(weeks=50000)
+        super().save(*args, **kwargs)
 
 
 @python_2_unicode_compatible

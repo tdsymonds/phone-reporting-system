@@ -8,6 +8,7 @@ from .models import Call, Chart, Department, DepartmentUser, Page, Row, RowChart
 class DepartmentUserInline(admin.StackedInline):
     model = DepartmentUser
     readonly_fields = ('date_joined', )
+    exclude = ('_date_left',)
     extra = 0
 
 

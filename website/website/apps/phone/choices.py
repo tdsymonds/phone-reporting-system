@@ -23,6 +23,7 @@ CHART_URL_CHOICES = [
     ['count', 'count'],
     ['daily_call_time', 'daily_call_time'],
     ['daily_count', 'daily_count'],
+    ['department', 'department'],
     ['donut', 'donut'],
 ]
 
