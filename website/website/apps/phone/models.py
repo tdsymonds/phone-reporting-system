@@ -12,6 +12,7 @@ from website.apps.authentication.models import CustomUser
 
 from .choices import (CHART_TYPE_CHOICES, CHART_URL_CHOICES, 
     DIRECTION_CHOICES, INTERNAL_EXTERNAL_CHOICES, NUMBER_OF_CHART_CHOICES)
+from .managers import DepartmentManager
 
 
 @python_2_unicode_compatible
@@ -25,6 +26,8 @@ class Department(MPTTModel):
     slug = models.SlugField(_('slug'), max_length=255, blank=True, allow_unicode=True)
     added_manually = models.BooleanField(_('added manually'), default=False, 
         help_text=_('Should be marked true if the department is created manually in the admin'))
+
+    my_objects = DepartmentManager()
 
     def __str__(self):
         return self.name

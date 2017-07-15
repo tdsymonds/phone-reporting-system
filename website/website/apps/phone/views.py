@@ -32,7 +32,7 @@ class AllCallView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = FullFilterBarForm()
+        context['form'] = FullFilterBarForm(request=self.request)
         context['only_me'] = False
         context['page'] = Page.objects.filter(name__icontains='all calls').first()
         return context
@@ -56,9 +56,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
             self.only_me = True
             return FilterBarForm(self.request.GET)
 
-        # todo: return a different form for different views
-        # for now just return the same form
-        return FullFilterBarForm(self.request.GET)
+        return FullFilterBarForm(self.request.GET, request=self.request)
 
     def _set_extra_query_params(self):
         internal_external = self.request.GET.get('internal_external', None)

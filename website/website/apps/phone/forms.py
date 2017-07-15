@@ -16,9 +16,17 @@ class FilterBarForm(forms.Form):
 
 
 class FullFilterBarForm(FilterBarForm):
-    myfilters = [('u%s' % u.pk, u.get_full_name()) for u in CustomUser.objects.all()]
-    myfilters += [('d%s'% d.pk, d.name) for d in Department.objects.all()]
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request')
 
-    myfilters = sorted(myfilters, key=lambda x: x[1])
+        super().__init__(*args, **kwargs)
+        
+        departments = Department.my_objects.viewable_by(request.user)
+        users = CustomUser.objects.in_departments(departments)
 
-    filters = forms.MultipleChoiceField(required=False, choices=myfilters)
+        myfilters = [('u%s' % u.pk, u.get_full_name()) for u in users]
+        myfilters += [('d%s'% d.pk, d.name) for d in departments]
+
+        myfilters = sorted(myfilters, key=lambda x: x[1])
+
+        self.fields['filters'] = forms.MultipleChoiceField(required=False, choices=myfilters)
