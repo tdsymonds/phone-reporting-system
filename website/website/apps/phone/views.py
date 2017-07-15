@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- 
 from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Avg, Count, IntegerField, OuterRef, Q, Subquery, Sum
-from django.db.models.functions import TruncDay
+from django.db.models import Avg, Count, IntegerField, OuterRef, Q, Subquery, Sum, Value as V
+from django.db.models.functions import Concat, TruncDay
 from django.http import HttpResponse
 from django.views.generic import TemplateView
 from rest_framework.response import Response
@@ -367,7 +367,6 @@ class DepartmentView(BaseAPIView):
         queryset = queryset.exclude(q_exclude_objects)
 
         categories = queryset.values_list('department__name', flat=True)
-
         series = [
             {
                 'name': self._get_names(0, 0),
@@ -390,6 +389,73 @@ class DepartmentView(BaseAPIView):
                 'data': queryset.values_list('eo_count', flat=True)
             }
         ]
+
+        return Response({
+            'categories': categories,
+            'series': series,
+        })
+
+
+class EmployeeView(BaseAPIView):
+    def get(self, request, format=None):
+        self._validate_form()
+
+        # get limit
+        limit = request.GET.get('top', None)
+        if limit:
+            limit = int(limit)
+        else:
+            limit = 20
+
+        # get broken down calls by direction internal/external
+        queryset = self._get_calls()
+        queryset = queryset.values(
+                'user__pk',
+                'internal_external', 
+                'direction'
+            ).annotate(
+                count=Count('pk'),
+            ).order_by('user__pk')
+
+        # get the queryset with the total count as this is needed for ordering
+        total_queryset = self._get_calls()
+        total_queryset = total_queryset.annotate(
+                full_name=Concat('user__first_name', V(' '), 'user__last_name')
+            ).values(
+                'user__pk',
+                'full_name',
+            ).annotate(
+                count=Count('pk'),
+            ).order_by('-count')
+
+        # need to get the pks in a list so can determine position in custom order
+        sorted_pks = list(total_queryset.values_list('user__pk', flat=True))
+        number_of_people = len(sorted_pks)
+
+        # create a count matrix for the different call types
+        call_type_matrix = [[[0] * number_of_people for x in range(2)] for y in range(2)]
+
+        for result in queryset:
+            # which call type list
+            target_list = call_type_matrix[int(result['direction'])][int(result['internal_external'])]
+            # which count to change in the list is based on the total queryset position 
+            position = sorted_pks.index(result['user__pk'])
+            target_list[position] = result['count']
+
+
+        # the categories is from the total queryset as is ordered correctly
+        categories = total_queryset.values_list('full_name', flat=True)[:limit]
+        # the series is calculated from the call type matrix
+        series = []
+        for i in range(2):
+            for j in range(2):
+                series.append(
+                    {
+                        'name': self._get_names(i,j),
+                        'color': self._get_colour(i,j),
+                        'data': call_type_matrix[i][j][:limit]
+                    }
+                )
 
         return Response({
             'categories': categories,

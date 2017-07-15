@@ -2,7 +2,7 @@
 from django.conf.urls import url
 
 from .views import (AllCallView, CountView, DailyCallTimeView, DailyCountView, 
-    DepartmentView, DonutView, MyCallView)
+    DepartmentView, DonutView, EmployeeView, MyCallView)
 
 
 urlpatterns = [
@@ -14,4 +14,6 @@ urlpatterns = [
     url(r'^api/daily-call-time/$', DailyCallTimeView.as_view(), name='daily_call_time'),
     url(r'^api/department/$', DepartmentView.as_view(), name='department'),
     url(r'^api/donut/$', DonutView.as_view(), name='donut'),
+    url(r'^api/employee/$', EmployeeView.as_view(), name='employee'),
+    
 ]
