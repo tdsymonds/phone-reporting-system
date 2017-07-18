@@ -21,12 +21,18 @@ class FullFilterBarForm(FilterBarForm):
 
         super().__init__(*args, **kwargs)
         
-        departments = Department.my_objects.viewable_by(request.user)
-        users = CustomUser.objects.in_departments(departments)
+        if request.user.is_superuser:
+            # superusers can see all
+            departments = Department.objects.all()
+            users = CustomUser.objects.all()
+        else:
+            # else only show the departments they're authorised to see
+            departments = request.user.departments_can_view.all()
+            department_pks = departments.values_list('pk', flat=True)
+            users = CustomUser.objects.filter(department__pk__in=department_pks)
 
         myfilters = [('u%s' % u.pk, u.get_full_name()) for u in users]
         myfilters += [('d%s'% d.pk, d.name) for d in departments]
-
         myfilters = sorted(myfilters, key=lambda x: x[1])
 
         self.fields['filters'] = forms.MultipleChoiceField(required=False, choices=myfilters)

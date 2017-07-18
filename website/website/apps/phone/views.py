@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Avg, Count, IntegerField, OuterRef, Q, Subquery, Sum, Value as V
+from django.db.models import Avg, Count, Q, Sum, Value as V
 from django.db.models.functions import Concat, TruncDay
 from django.http import HttpResponse
 from django.views.generic import TemplateView
@@ -12,7 +12,7 @@ import json
 
 from .choices import DIRECTION_CHOICES, INTERNAL_EXTERNAL_CHOICES
 from .forms import FilterBarForm, FullFilterBarForm
-from .models import Call, Chart, DepartmentUser, Page
+from .models import Call, Chart, Page
 from .utils import datetimeRange
 
 
@@ -132,7 +132,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
                 if flter[0] == 'u':
                     q_user_filter_objects |= Q(user__pk=flter[1:])
                 elif flter[0] == 'd':
-                    q_department_filter_objects |= Q(user__department__pk=flter[1:])
+                    q_department_filter_objects |= Q(department__pk=flter[1:])
 
             q_objects &= q_user_filter_objects
             q_objects &= q_department_filter_objects
@@ -287,106 +287,26 @@ class CountView(BaseAPIView):
 class DepartmentView(BaseAPIView):
     def get(self, request, format=None):
         self._validate_form()
+        
+        queryset = self._get_calls()
+        queryset = queryset.values(
+                'department__name',
+                'internal_external', 
+                'direction'
+            ).annotate(
+                count=Count('pk'),
+            ).order_by('department__name')
 
-        q_objects = self._get_call_q_objects()
-        q_objects &= Q(
-            Q(user__departmentuser__pk=OuterRef('pk')) &
-            Q(start_time__gte=OuterRef('date_joined')) &
-            Q(start_time__lt=OuterRef('_date_left'))
-        )
+        categories = queryset.values_list('department__name', flat=True).distinct()
+        series = []
 
-        queryset = DepartmentUser.objects.all().values('department__name').annotate(
-            ii_count=Sum(Subquery(
-                Call.objects.filter(
-                        q_objects & 
-                        Q(
-                            Q(internal_external=0) &
-                            Q(direction=0)
-                        )
-                    ).values(
-                        'user__departmentuser__pk'
-                    ).annotate(
-                        count=Count('pk')
-                    ).order_by('user__departmentuser__pk').values('count'),
-                output_field=IntegerField()
-            )),
-            io_count=Sum(Subquery(
-                Call.objects.filter(
-                        q_objects & 
-                        Q(
-                            Q(internal_external=0) &
-                            Q(direction=1)
-                        )
-                    ).values(
-                        'user__departmentuser__pk'
-                    ).annotate(
-                        count=Count('pk')
-                    ).order_by('user__departmentuser__pk').values('count'),
-                output_field=IntegerField()
-            )),
-            ei_count=Sum(Subquery(
-                Call.objects.filter(
-                        q_objects & 
-                        Q(
-                            Q(internal_external=1) &
-                            Q(direction=0)
-                        )
-                    ).values(
-                        'user__departmentuser__pk'
-                    ).annotate(
-                        count=Count('pk')
-                    ).order_by('user__departmentuser__pk').values('count'),
-                output_field=IntegerField()
-            )),
-            eo_count=Sum(Subquery(
-                Call.objects.filter(
-                        q_objects & 
-                        Q(
-                            Q(internal_external=1) &
-                            Q(direction=1)
-                        )
-                    ).values(
-                        'user__departmentuser__pk'
-                    ).annotate(
-                        count=Count('pk')
-                    ).order_by('user__departmentuser__pk').values('count'),
-                output_field=IntegerField()
-            ))
-
-        ).order_by('department__name')
-
-        # only include departments where there have been some calls made
-        q_exclude_objects = Q(
-            Q(ii_count__isnull=True) &
-            Q(io_count__isnull=True) &
-            Q(ei_count__isnull=True) &
-            Q(eo_count__isnull=True)
-        )
-        queryset = queryset.exclude(q_exclude_objects)
-
-        categories = queryset.values_list('department__name', flat=True)
-        series = [
-            {
-                'name': self._get_names(0, 0),
-                'color': self._get_colour(0, 0),
-                'data': queryset.values_list('ii_count', flat=True)
-            },
-            {
-                'name': self._get_names(0, 1),
-                'color': self._get_colour(0, 1),
-                'data': queryset.values_list('io_count', flat=True)
-            },
-            {
-                'name': self._get_names(1, 0),
-                'color': self._get_colour(1, 0),
-                'data': queryset.values_list('ei_count', flat=True)
-            },
-            {
-                'name': self._get_names(1, 1),
-                'color': self._get_colour(1, 1),
-                'data': queryset.values_list('eo_count', flat=True)
-            }
-        ]
+        for i in range(2):
+            for j in range(2):
+                series.append({
+                    'name': self._get_names(i,j),
+                    'color': self._get_colour(i,j),
+                    'data': queryset.filter(direction=i, internal_external=j).values_list('count', flat=True)
+                })
 
         return Response({
             'categories': categories,

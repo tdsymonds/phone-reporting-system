@@ -32,6 +32,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
     slug = models.SlugField(_('slug'), max_length=255, blank=True, allow_unicode=True)
 
+    department = models.ForeignKey('phone.Department', blank=True, null=True, related_name='department')
+    departments_can_view = models.ManyToManyField('phone.Department', blank=True)
     phone_id = models.IntegerField(_('phone id'), blank=True, null=True, unique=True)
     phone_extension = models.CharField(_('phone extension'), max_length=20, blank=True, null=True, unique=True)
 

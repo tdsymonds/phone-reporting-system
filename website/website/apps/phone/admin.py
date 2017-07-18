@@ -1,22 +1,12 @@
 # -*- coding: utf-8 -*- 
 from django.contrib import admin
-from mptt.admin import DraggableMPTTAdmin
 
-from .models import Call, Chart, Department, DepartmentUser, Page, Row, RowChart
-
-
-class DepartmentUserInline(admin.StackedInline):
-    model = DepartmentUser
-    readonly_fields = ('date_joined', )
-    exclude = ('_date_left',)
-    extra = 0
+from .models import Call, Chart, Department, Page, Row, RowChart
 
 
 @admin.register(Department)
-class DepartmentAdmin(DraggableMPTTAdmin):
-    list_display = ('tree_actions', 'indented_title', )
-    list_display_links = ('indented_title', )
-    inlines = (DepartmentUserInline,)
+class DepartmentAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Call)

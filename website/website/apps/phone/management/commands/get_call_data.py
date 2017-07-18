@@ -7,7 +7,7 @@ import psycopg2
 
 from website.apps.authentication.models import CustomUser
 
-from ...models import Call, Department, DepartmentUser
+from ...models import Call, Department
 from ...utils import Reg
 
 
@@ -62,13 +62,9 @@ class Command(BaseCommand):
 
 
         # delete old departments
-        # note: don't want to remove departments that have been 
-        # added manually
-        departments_to_delete = Department.objects.filter(
-            added_manually=False).exclude(department_id__in=department_id_list)
+        departments_to_delete = Department.objects.all().exclude(
+            department_id__in=department_id_list).delete()
 
-        # todo: need to make sure child nodes aren't deleted when a parent node is!!
-        # todo: delete these departments             
 
     def get_users(self):
         user_id_list = []
@@ -92,6 +88,8 @@ class Command(BaseCommand):
             user_exists = existing_user = CustomUser.objects.filter(
                 phone_id=r.user_id).first()
 
+            department = Department.objects.filter(department_id=r.user_department_id).first()
+
             if user_exists:
                 # update the info
                 existing_user.email = r.user_email
@@ -99,21 +97,8 @@ class Command(BaseCommand):
                 existing_user.last_name = r.user_surname
                 existing_user.is_active = r.user_active
                 existing_user.phone_extension=r.user_extension
+                existing_user.department = department
                 existing_user.save()
-
-                # has the department changed?
-                new_department = Department.objects.filter(department_id=r.user_department_id).first()
-
-                # only will be one active department user per user, so can get first
-                department_user = DepartmentUser.objects.filter(date_left__isnull=True, user=existing_user).first()
-
-                # do the departments match?
-                if new_department != department_user.department:
-                    # set the current department user as left
-                    department_user.date_left = datetime.now()
-                    department_user.save()
-                    # add the new department
-                    department_user = DepartmentUser.objects.create(department=new_department, user=existing_user)
 
             else:
                 # need to add a new user
@@ -124,28 +109,30 @@ class Command(BaseCommand):
                     is_active=r.user_active,
                     phone_id=r.user_id,
                     phone_extension=r.user_extension,
+                    department=department,
                 )
                 new_user.save()
                 print ('-Added new user: %s' % (new_user))
-
-                # need to add them to the correct department.
-                department = Department.objects.filter(department_id=r.user_department_id).first()
-                department_user = DepartmentUser(department=department, user=new_user)
-                department_user.save()
-
-                print ('--Added to department: %s' % (department))
 
         # note to self:
         # do i need to delete old users because whether they are 
         # active or not is already being handled by the phone system
 
-    def get_calls(self):
+    def get_calls(self, date_from=None, date_to=None):
         # calls are created after the phone call has complete,
         # so once logged they do not change, so only need to add
         # new calls and can skip existing.
 
         datetime_format = '%Y-%m-%d'
-        today = datetime.now().strftime(datetime_format)
+        
+        if not date_from:
+            date_from = datetime.now()
+
+        if not date_to:
+            date_to = datetime.now()
+
+        date_from = date_from.strftime(datetime_format)
+        date_to = date_to.strftime(datetime_format)
 
         # due to the large amount of data, need to import calls on a daily basis,
         # otherwise there is too much data to loop through and consider
@@ -154,7 +141,7 @@ class Command(BaseCommand):
                            ch_end_time, ch_talk_time_seconds
                     FROM tblcallhistory
                     WHERE ch_start_time BETWEEN '%s 00:00' AND '%s 23:59:59' 
-                """ % (today, today)
+                """ % (date_from, date_to)
 
         curs = self.get_curs(query)
 
@@ -173,6 +160,7 @@ class Command(BaseCommand):
                 new_call = Call(
                     call_id=r.ch_call_id,
                     user=user,
+                    department=user.department,
                     direction=r.ch_direction,
                     internal_external=r.ch_internal_external,
                     start_time=r.ch_start_time,

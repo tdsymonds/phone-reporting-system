@@ -12,6 +12,7 @@ class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     readonly_fields = ['phone_id', 'phone_extension',]
+    filter_horizontal = ('departments_can_view', )
 
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
@@ -19,6 +20,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password',)}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'company_position', 'image', 'slug')}),
+        (_('Company'), {'fields': ('department', 'departments_can_view')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
                                        'groups', 'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
