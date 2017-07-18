@@ -104,7 +104,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
 
         return name
 
-    def _get_call_q_objects(self):
+    def _get_calls(self):
         date_from, date_to = self.form.cleaned_data['date_range']
 
         q_objects = Q()
@@ -137,10 +137,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
             q_objects &= q_user_filter_objects
             q_objects &= q_department_filter_objects
         
-        return q_objects
-
-    def _get_calls(self):
-        return Call.objects.filter(self._get_call_q_objects()).annotate(
+        return Call.objects.filter(q_objects).annotate(
                 date=TruncDay('start_time')
             ).order_by('date')
 
@@ -159,24 +156,6 @@ class BaseAPIView(LoginRequiredMixin, APIView):
             ).annotate(
                 value=Avg('talk_time_seconds')
             ).order_by('date', 'direction', 'internal_external')        
-
-    def _get_donut_calls(self):
-        self._validate_form()
-        
-        calls = self._get_calls()
-        calls = calls.values('internal_external', 'direction').annotate(
-            count=Count('pk')).order_by('internal_external', 'direction')
-
-        results = []
-
-        for result in calls:
-            results.append({
-                'name': self._get_names(result['direction'], result['internal_external']),
-                'y': result['count'],
-                'color': self._get_colour(result['direction'], result['internal_external']),
-            })
-
-        return results
 
     def _get_daily_series(self, queryset, query_type=None):
         # categories are each date
@@ -259,7 +238,21 @@ class DailyCallTimeView(BaseAPIView):
 
 class DonutView(BaseAPIView):
     def get(self, request, format=None):
-        results = self._get_donut_calls()
+        self._validate_form()
+        
+        calls = self._get_calls()
+        calls = calls.values('internal_external', 'direction').annotate(
+            count=Count('pk')).order_by('internal_external', 'direction')
+
+        results = []
+
+        for result in calls:
+            results.append({
+                'name': self._get_names(result['direction'], result['internal_external']),
+                'y': result['count'],
+                'color': self._get_colour(result['direction'], result['internal_external']),
+            })
+
         return Response(results)
 
 
