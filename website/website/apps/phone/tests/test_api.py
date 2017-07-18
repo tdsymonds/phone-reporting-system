@@ -111,8 +111,6 @@ class APITestCase(APITestCase):
         d = Department.objects.all().order_by('?').first()
         for i in range(2):
             for j in range(2):
-                print (d, i, j)
-
                 response = self._get_response('phone:count', {
                     'direction': i,
                     'internal_external': j,
@@ -121,6 +119,5 @@ class APITestCase(APITestCase):
                     ]
                 })
 
-                db_count = Call.objects.filter(direction=i, internal_external=j, user=u).count()
+                db_count = Call.objects.filter(direction=i, internal_external=j, department=d).count()
                 self.assertEqual(db_count, response.data['count'])
-
