@@ -5,6 +5,7 @@ from django.db.models import Avg, Count, Q, Sum, Value as V
 from django.db.models.functions import Concat, TruncDay
 from django.http import HttpResponse
 from django.views.generic import TemplateView
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -70,17 +71,15 @@ class BaseAPIView(LoginRequiredMixin, APIView):
         self.internal_external = internal_external
         self.direction = direction
 
-    def _validate_form(self):
-        if not self.form.is_valid():
-            self._return_error('form is not valid')
-
     def _return_error(self, msg):
         return Response({
             'error': msg
-        })
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     def _get_colour(self, direction, internal_external):
-        if int(direction) == 0 and int(internal_external) == 0:
+        if not direction or not internal_external:
+            return '003b4b'
+        elif int(direction) == 0 and int(internal_external) == 0:
             return '#b01658'
         elif int(direction) == 0 and int(internal_external) == 1:
             return '#009b87'
@@ -128,7 +127,10 @@ class BaseAPIView(LoginRequiredMixin, APIView):
             q_user_filter_objects = Q()
             q_department_filter_objects = Q()
 
+            is_valid = self.form.is_valid()
+
             for flter in self.form.cleaned_data['filters']:
+            # for flter in self.form.cleaned_data.get('filters', []):
                 if flter[0] == 'u':
                     q_user_filter_objects |= Q(user__pk=flter[1:])
                 elif flter[0] == 'd':
@@ -187,14 +189,15 @@ class BaseAPIView(LoginRequiredMixin, APIView):
         # loop through each date between the date form to date
         # to, so dates with no records will still show as zero
         date_from, date_to = self.form.cleaned_data['date_range']
-        for day in datetimeRange(date_from, date_to):
-            day_str = datetime.strftime(day, dict_date_format)
-            categories.append(day_str)
+        if date_from and date_to:
+            for day in datetimeRange(date_from, date_to):
+                day_str = datetime.strftime(day, dict_date_format)
+                categories.append(day_str)
 
-            # loop through each of the data types
-            for i in range(2):
-                for j in range(2):
-                    data_lists[i][j].append(data_results[i][j].get(day_str, 0))
+                # loop through each of the data types
+                for i in range(2):
+                    for j in range(2):
+                        data_lists[i][j].append(data_results[i][j].get(day_str, 0))
 
         # loop through each of the data types in the matrix 
         # and append to the series
@@ -212,7 +215,8 @@ class BaseAPIView(LoginRequiredMixin, APIView):
 
 class DailyCountView(BaseAPIView):
     def get(self, request, format=None):
-        self._validate_form()
+        if not self.form.is_valid():
+            return self._return_error('form is not valid')
 
         calls = self._get_daily_call_counts()
         categories, series = self._get_daily_series(calls)
@@ -225,7 +229,8 @@ class DailyCountView(BaseAPIView):
 
 class DailyCallTimeView(BaseAPIView):
     def get(self, request, format=None):
-        self._validate_form()
+        if not self.form.is_valid():
+            return self._return_error('form is not valid')
 
         calls = self._get_daily_call_time()
         categories, series = self._get_daily_series(queryset=calls, query_type='seconds')
@@ -238,7 +243,8 @@ class DailyCallTimeView(BaseAPIView):
 
 class DonutView(BaseAPIView):
     def get(self, request, format=None):
-        self._validate_form()
+        if not self.form.is_valid():
+            return self._return_error('form is not valid')
         
         calls = self._get_calls()
         calls = calls.values('internal_external', 'direction').annotate(
@@ -258,7 +264,8 @@ class DonutView(BaseAPIView):
 
 class CountView(BaseAPIView):
     def get(self, request, format=None):
-        self._validate_form()
+        if not self.form.is_valid():
+            return self._return_error('form is not valid')
 
         queryset = self._get_calls()
 
@@ -279,7 +286,8 @@ class CountView(BaseAPIView):
 
 class DepartmentView(BaseAPIView):
     def get(self, request, format=None):
-        self._validate_form()
+        if not self.form.is_valid():
+            return self._return_error('form is not valid')
         
         queryset = self._get_calls()
         queryset = queryset.values(
@@ -309,7 +317,8 @@ class DepartmentView(BaseAPIView):
 
 class EmployeeView(BaseAPIView):
     def get(self, request, format=None):
-        self._validate_form()
+        if not self.form.is_valid():
+            return self._return_error('form is not valid')
 
         # get limit
         limit = request.GET.get('top', None)
