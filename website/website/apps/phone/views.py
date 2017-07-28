@@ -127,10 +127,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
             q_user_filter_objects = Q()
             q_department_filter_objects = Q()
 
-            is_valid = self.form.is_valid()
-
             for flter in self.form.cleaned_data['filters']:
-            # for flter in self.form.cleaned_data.get('filters', []):
                 if flter[0] == 'u':
                     q_user_filter_objects |= Q(user__pk=flter[1:])
                 elif flter[0] == 'd':
