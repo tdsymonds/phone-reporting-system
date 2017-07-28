@@ -153,14 +153,6 @@
                         }
                     },
                     legend: {
-                        align: 'right',
-                        layout: 'vertical',
-                        verticalAlign: 'middle',
-                        itemStyle: {
-                            fontSize: '16px',
-                            fontWeight: 'normal'
-
-                        },
                         labelFormatter: function() {
                             return '<div style="text-align: left; width:130px;float:left;">' + this.name 
                                 + '</div><div style="width:40px; float:left;text-align:right;">: ' + this.y + '</div>';
