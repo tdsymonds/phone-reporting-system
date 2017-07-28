@@ -77,7 +77,7 @@ class BaseAPIView(LoginRequiredMixin, APIView):
         }, status=status.HTTP_400_BAD_REQUEST)
 
     def _get_colour(self, direction, internal_external):
-        if not direction or not internal_external:
+        if direction is None and internal_external is None:
             return '003b4b'
         elif int(direction) == 0 and int(internal_external) == 0:
             return '#b01658'
