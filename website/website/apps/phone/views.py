@@ -266,18 +266,9 @@ class CountView(BaseAPIView):
 
         queryset = self._get_calls()
 
-        direction = request.GET.get('direction')
-        internal_external = request.GET.get('internal_external')
-
-        if direction:
-            queryset = queryset.filter(direction=direction)
-
-        if internal_external:
-            queryset = queryset.filter(internal_external=internal_external)    
-
         return Response({
             'count': queryset.count(),
-            'colour': self._get_colour(direction, internal_external),
+            'colour': self._get_colour(self.direction, self.internal_external),
         })
 
 
